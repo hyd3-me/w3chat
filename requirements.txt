@@ -5,6 +5,7 @@ annotated-types==0.7.0
 anyio==4.9.0
 async-timeout==5.0.1
 attrs==25.3.0
+backports-asyncio-runner==1.2.0
 bitarray==3.5.1
 certifi==2025.7.14
 cffi==1.17.1
@@ -43,6 +44,7 @@ pydantic==2.11.7
 pydantic-core==2.33.2
 pygments==2.19.2
 pytest==8.4.1
+pytest-asyncio==1.1.0
 python-jose==3.5.0
 pyunormalize==16.0.0
 regex==2024.11.6

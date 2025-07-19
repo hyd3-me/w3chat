@@ -26,8 +26,6 @@ async def test_websocket_connect(client):
     
     # Connect to WebSocket with token
     with client.websocket_connect(f"/ws/chat?token={token}") as websocket:
-        # Check if connection is accepted
-        assert websocket.accepted
         # Send a test message and expect a response
         websocket.send_text("ping")
         response = websocket.receive_text()

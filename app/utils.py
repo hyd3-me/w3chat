@@ -40,10 +40,8 @@ def get_secret_data():
 
 def get_secret_key():
     """Get SECRET_KEY from secret data, with a fallback."""
-    if SECRET_KEY is not None:
-        return SECRET_KEY
     secret_data = get_secret_data()
-    secret_key = secret_data.get('SECRET_KEY', '')
+    secret_key = secret_data.get('SECRET_KEY')
     if not secret_key:
         raise ValueError("SECRET_KEY not found in secret data")
     return secret_key

@@ -1,7 +1,7 @@
 # app/main.py
 from fastapi import FastAPI
-from app.auth import router as auth_router
-from app.websocket import router as websocket_router
+from app.routers.auth import router as auth_router
+from app.routers.websocket import router as websocket_router
 
 app = FastAPI()
 

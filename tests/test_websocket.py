@@ -2,14 +2,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from jose import jwt
-from datetime import datetime, timedelta
-
-import config
-
-# Secret key must match the one in auth.py
-SECRET_KEY = config.SECRET_KEY
-ALGORITHM = "HS256"
+from app import utils
 
 @pytest.fixture
 def client():
@@ -18,11 +11,8 @@ def client():
 @pytest.mark.asyncio
 async def test_websocket_connect(client):
     # Generate a valid JWT token
-    payload = {
-        "sub": "0x1234567890abcdef1234567890abcdef12345678",
-        "exp": datetime.utcnow() + timedelta(minutes=30)
-    }
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    success, token = utils.generate_jwt("0x1234567890abcdef1234567890abcdef12345678")
+    assert success, f"Failed to generate token: {token}"
     
     # Connect to WebSocket with token
     with client.websocket_connect(f"/ws/chat?token={token}") as websocket:
@@ -38,16 +28,10 @@ async def test_websocket_message(client):
     # Generate JWT tokens for two users
     user1_address = "0x1234567890abcdef1234567890abcdef12345678"
     user2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
-    payload1 = {
-        "sub": user1_address,
-        "exp": datetime.utcnow() + timedelta(minutes=30)
-    }
-    payload2 = {
-        "sub": user2_address,
-        "exp": datetime.utcnow() + timedelta(minutes=30)
-    }
-    token1 = jwt.encode(payload1, SECRET_KEY, algorithm=ALGORITHM)
-    token2 = jwt.encode(payload2, SECRET_KEY, algorithm=ALGORITHM)
+    success1, token1 = utils.generate_jwt(user1_address)
+    assert success1, f"Failed to generate token1: {token1}"
+    success2, token2 = utils.generate_jwt(user2_address)
+    assert success2, f"Failed to generate token2: {token2}"
     
     # Connect two users
     with client.websocket_connect(f"/ws/chat?token={token1}") as ws1:

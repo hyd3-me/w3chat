@@ -1,13 +1,8 @@
 # app/websocket.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from jose import jwt, JWTError
-import json
-import os, sys
 import logging
+from app import utils
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-
-import config
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,24 +10,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
 
-# Secret key must match the one in auth.py
-SECRET_KEY = config.SECRET_KEY
-ALGORITHM = "HS256"
-
 # Store active WebSocket connections
 connections = {}
 
 async def get_current_user(token: str):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        address: str = payload.get("sub")
-        if address is None:
-            logger.error("Invalid token: missing 'sub' field")
-            raise WebSocketDisconnect(code=1008, reason="Invalid token")
-        return address
-    except JWTError:
-        logger.error(f"JWT verification failed: {str(e)}")
-        raise WebSocketDisconnect(code=1008, reason="Invalid token")
+    success, result = utils.decode_jwt(token)
+    if not success:
+        logger.error(result)
+        raise WebSocketDisconnect(code=1008, reason=result)
+    return result
 
 @router.websocket("/chat")
 async def websocket_endpoint(websocket: WebSocket, token: str):

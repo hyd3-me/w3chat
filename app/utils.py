@@ -1,6 +1,10 @@
 # app/utils.py
 import os
 import json
+import logging
+import logging.config
+import logging.handlers
+import uuid
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from jose import jwt, JWTError
@@ -12,6 +16,7 @@ W3 = Web3()
 TOKEN_EXPIRE_MINUTES = 30
 ALGORITHM = "HS256"
 SECRET_KEY = None  # Initialize to None, set below
+LOGGER_PREFIX = "w3chat"
 
 # Pydantic model for authentication request
 class AuthRequest(BaseModel):
@@ -19,17 +24,37 @@ class AuthRequest(BaseModel):
     message: str
     signature: str
 
-def get_source_path():
-    """Return the absolute path to the project root (w3chat/source)."""
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+def set_environment_variable(name: str, value: str):
+    """Set an environment variable."""
+    os.environ[name] = value
 
 def join_paths(*paths):
     """Join multiple paths into a single path."""
     return os.path.join(*paths)
 
+def remove_path(path):
+    """Remove a file or directory."""
+    if os.path.exists(path):
+        if os.path.isdir(path):
+            os.rmdir(path)
+        else:
+            os.remove(path)
+
+def get_source_path():
+    """Return the absolute path to the project root (w3chat/source)."""
+    return os.path.abspath(join_paths(os.path.dirname(__file__), '..'))
+
+def get_data_path():
+    """Return the absolute path to the data directory (w3chat/data)."""
+    return os.path.abspath(join_paths(get_source_path(), '..', 'data'))
+
+def path_exists(path):
+    """Check if a given path exists."""
+    return os.path.exists(path)
+
 def get_secret_data():
     """Read secret data from w3chat/data/SECRET_DATA.json."""
-    secret_file = join_paths(get_source_path(), '..', 'data', 'SECRET_DATA.json')
+    secret_file = join_paths(get_data_path(), 'SECRET_DATA.json')
     try:
         if not os.path.exists(secret_file):
             raise FileNotFoundError(f"Secret data file not found at {secret_file}")
@@ -85,3 +110,70 @@ def decode_jwt(token: str):
         return True, address
     except JWTError as e:
         return False, f"JWT verification failed: {str(e)}"
+
+def get_logger(name: str):
+    """Return a logger with name prefixed by 'w3chat'."""
+    return logging.getLogger(f"{'.'.join([LOGGER_PREFIX, name]) if name else LOGGER_PREFIX}")
+
+def setup_logging():
+    from .config import config_map
+    """Setup logging based on the specified mode."""
+    mode = os.getenv('MODE', 'development')
+    config_class = config_map.get(mode, config_map['default'])
+    config = config_class()
+
+    # Ensure log directory exists
+    if config.LOG_TO_FILE:
+        log_dir = os.path.dirname(config.LOG_FILE)
+        if not os.path.exists(log_dir):
+            if not os.access(os.path.dirname(log_dir), os.W_OK):
+                raise PermissionError(f"No write permissions for directory {os.path.dirname(log_dir)}")
+            os.makedirs(log_dir)
+
+    # Configure logging
+    logging_config = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'default': {
+                'format': config.LOG_FORMAT,
+                'datefmt': config.LOG_DATEFMT
+            }
+        },
+        'handlers': {},
+        'root': {
+            'level': config.LOG_LEVEL,
+            'handlers': []
+        }
+    }
+
+    # Add console handler if enabled
+    if getattr(config, 'LOG_TO_CONSOLE', False):
+        logging_config['handlers']['console'] = {
+            'class': 'logging.StreamHandler',
+            'level': config.LOG_LEVEL,
+            'formatter': 'default',
+            'stream': 'ext://sys.stdout'
+        }
+        logging_config['root']['handlers'].append('console')
+
+    # Add file handler if enabled
+    if config.LOG_TO_FILE:
+        logging_config['handlers']['file'] = {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': config.LOG_LEVEL,
+            'formatter': 'default',
+            'filename': config.LOG_FILE,
+            'maxBytes': config.LOG_MAX_BYTES,
+            'backupCount': config.LOG_BACKUP_COUNT
+        }
+        logging_config['root']['handlers'].append('file')
+
+    logging.config.dictConfig(logging_config)
+
+def trigger_test_error():
+    """Log a test error message with a unique string and return it."""
+    logger = get_logger(__name__)
+    unique_message = f"Test error {uuid.uuid4()}"
+    logger.error(unique_message)
+    return unique_message

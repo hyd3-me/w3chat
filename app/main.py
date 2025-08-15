@@ -2,6 +2,10 @@
 from fastapi import FastAPI
 from app.routers.auth import router as auth_router
 from app.routers.websocket import router as websocket_router
+from app import utils
+
+# Setup logging
+utils.setup_logging()
 
 app = FastAPI()
 

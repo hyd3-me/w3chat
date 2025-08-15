@@ -5,8 +5,7 @@ from app import utils
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = utils.get_logger(__name__)
 
 router = APIRouter(prefix="/ws", tags=["websocket"])
 

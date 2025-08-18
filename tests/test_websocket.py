@@ -88,3 +88,46 @@ async def test_websocket_message_recipient_not_connected(client):
         
         # Explicitly close connection
         ws1.close()
+
+@pytest.mark.asyncio
+async def test_websocket_multiple_connections_same_address(client):
+    """Test sending a message to multiple WebSocket clients with the same address."""
+    # Generate JWT tokens for sender and recipient (same address for recipient)
+    sender_address = "0x1234567890abcdef1234567890abcdef12345678"
+    recipient_address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    success1, sender_token = utils.generate_jwt(sender_address)
+    assert success1, f"Failed to generate sender token: {sender_token}"
+    success2, recipient_token = utils.generate_jwt(recipient_address)
+    assert success2, f"Failed to generate recipient token: {recipient_token}"
+    
+    # Connect two clients for recipient and one for sender
+    with client.websocket_connect(f"/ws/chat?token={sender_token}") as ws_sender:
+        with client.websocket_connect(f"/ws/chat?token={recipient_token}") as ws_recipient1:
+            with client.websocket_connect(f"/ws/chat?token={recipient_token}") as ws_recipient2:
+                # Send message from sender to recipient
+                message = {
+                    "type": "message",
+                    "to": recipient_address,
+                    "data": "Hello to both clients!"
+                }
+                ws_sender.send_json(message)
+                
+                # Check sender receives acknowledgment
+                ack = ws_sender.receive_json()
+                assert ack == {"type": "ack"}
+                
+                # Check both recipient clients receive the message
+                received1 = ws_recipient1.receive_json()
+                assert received1["type"] == "message"
+                assert received1["from"] == sender_address
+                assert received1["data"] == message["data"]
+                
+                received2 = ws_recipient2.receive_json()
+                assert received2["type"] == "message"
+                assert received2["from"] == sender_address
+                assert received2["data"] == message["data"]
+                
+                # Explicitly close connections
+                ws_sender.close()
+                ws_recipient1.close()
+                ws_recipient2.close()

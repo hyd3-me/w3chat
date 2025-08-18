@@ -1,12 +1,6 @@
 # tests/test_websocket.py
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 from app import utils
-
-@pytest.fixture
-def client():
-    return TestClient(app)
 
 @pytest.mark.asyncio
 async def test_websocket_connect(client):

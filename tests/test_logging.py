@@ -3,8 +3,6 @@ from app import utils
 
 def test_logging_in_testing_mode():
     """Test that logging in testing mode writes ERROR messages to test.log."""
-    # Set testing mode
-    utils.set_environment_variable('MODE', 'testing')
     
     # Ensure log directory and files are clean
     log_dir = utils.join_paths(utils.get_data_path(), 'logs')

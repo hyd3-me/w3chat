@@ -1,10 +1,4 @@
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 
-@pytest.fixture
-def client():
-    return TestClient(app)
 
 def test_home_page(client):
     response = client.get("/")

@@ -131,3 +131,59 @@ async def test_websocket_multiple_connections_same_address(client):
                 ws_sender.close()
                 ws_recipient1.close()
                 ws_recipient2.close()
+
+@pytest.mark.asyncio
+async def test_websocket_channel_subscription(client):
+    """Test subscribing to a channel and receiving messages."""
+    # Generate JWT tokens for two users
+    user1_address = "0x1234567890abcdef1234567890abcdef12345678"
+    user2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    success1, token1 = utils.generate_jwt(user1_address)
+    assert success1, f"Failed to generate token1: {token1}"
+    success2, token2 = utils.generate_jwt(user2_address)
+    assert success2, f"Failed to generate token2: {token2}"
+    
+    # Generate channel name
+    channel_name = utils.generate_channel_name(user1_address, user2_address)
+    
+    # Connect two users
+    with client.websocket_connect(f"/ws/chat?token={token1}") as ws1:
+        with client.websocket_connect(f"/ws/chat?token={token2}") as ws2:
+            # User1 subscribes to the channel
+            ws1.send_json({"type": "subscribe", "channel": channel_name})
+            ws1_ack = ws1.receive_json()
+            assert ws1_ack == {"type": "ack"}
+            
+            # User2 subscribes to the channel
+            ws2.send_json({"type": "subscribe", "channel": channel_name})
+            ws2_ack = ws2.receive_json()
+            assert ws2_ack == {"type": "ack"}
+            
+            # User1 sends a message to the channel
+            message = {
+                "type": "channel",
+                "channel": channel_name,
+                "data": "Hello in channel!"
+            }
+            ws1.send_json(message)
+            
+            # Check sender receives acknowledgment
+            ws1_message_ack = ws1.receive_json()
+            assert ws1_message_ack == {"type": "ack"}
+            
+            # Check both users receive the message
+            ws1_received = ws1.receive_json()
+            assert ws1_received["type"] == "message"
+            assert ws1_received["from"] == user1_address
+            assert ws1_received["channel"] == channel_name
+            assert ws1_received["data"] == message["data"]
+            
+            ws2_received = ws2.receive_json()
+            assert ws2_received["type"] == "message"
+            assert ws2_received["from"] == user1_address
+            assert ws2_received["channel"] == channel_name
+            assert ws2_received["data"] == message["data"]
+            
+            # Explicitly close connections
+            ws1.close()
+            ws2.close()

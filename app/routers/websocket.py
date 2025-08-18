@@ -10,6 +10,8 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 
 # Store active WebSocket connections
 connections = {}
+# Store channel subscriptions as a dictionary of lists
+channels = {}
 
 async def add_connection(address: str, websocket: WebSocket):
     """Add a WebSocket connection for the given address."""
@@ -25,6 +27,12 @@ async def remove_connection(address: str, websocket: WebSocket):
         if not connections[address]:
             del connections[address]
     logger.info("WebSocket connection closed")
+
+async def add_channel(channel_name: str):
+    """Add a new channel if it doesn't exist."""
+    if channel_name not in channels:
+        channels[channel_name] = []
+    logger.debug("Channel added")
 
 async def send_to_subscribers(recipient_connections: list[WebSocket], message: dict):
     """Send a message to all recipient WebSocket connections."""
@@ -61,12 +69,56 @@ async def process_message(websocket: WebSocket, data: dict, sender_address: str)
     await send_to_subscribers(recipient_connections, {
         "type": "message",
         "from": sender_address,
+        "data": data_content,
+    })
+
+async def process_subscribe(websocket: WebSocket, data: dict, sender_address: str):
+    """Process subscribe message and add websocket to channel."""
+    channel_name = data.get("channel")
+    if not channel_name:
+        await websocket.send_json({"type": "error", "message": "Invalid channel name"})
+        logger.warning("Invalid channel name")
+        return
+    
+    # Add channel and subscribe websocket
+    await add_channel(channel_name)
+    if websocket not in channels[channel_name]:
+        channels[channel_name].append(websocket)
+    
+    await websocket.send_json({"type": "ack"})
+    logger.debug("Subscribed to channel")
+
+async def process_channel(websocket: WebSocket, data: dict, sender_address: str):
+    """Process channel message type and forward to all channel subscribers."""
+    channel_name = data.get("channel")
+    data_content = data.get("data")
+    
+    if not channel_name or not data_content:
+        await websocket.send_json({"type": "error", "message": "Invalid channel message format"})
+        logger.warning("Invalid channel message format")
+        return
+    
+    # Channel-based message handling
+    recipient_connections = channels.get(channel_name, [])
+    if not recipient_connections:
+        await websocket.send_json({"type": "error", "message": f"No subscribers in channel: {channel_name}"})
+        logger.warning("No subscribers in channel")
+        return
+    
+    await websocket.send_json({"type": "ack"})
+    logger.debug("Sent acknowledgment to sender")
+    await send_to_subscribers(recipient_connections, {
+        "type": "message",
+        "from": sender_address,
+        "channel": channel_name,
         "data": data_content
     })
 
 process_map = {
     "ping": process_ping,
     "message": process_message,
+    "subscribe": process_subscribe,
+    "channel": process_channel,
 }
 
 async def process_type(websocket: WebSocket, sender_address: str):

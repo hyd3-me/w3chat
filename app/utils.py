@@ -177,3 +177,8 @@ def trigger_test_error():
     unique_message = f"Test error {uuid.uuid4()}"
     logger.error(unique_message)
     return unique_message
+
+def generate_channel_name(address_1: str, address_2: str) -> str:
+    """Generate channel name from two addresses, ordered lexicographically."""
+    sorted_addresses = sorted([address_1, address_2])
+    return f"{sorted_addresses[0]}:{sorted_addresses[1]}"

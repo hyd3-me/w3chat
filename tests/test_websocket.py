@@ -62,3 +62,29 @@ async def test_websocket_message(client):
             # Explicitly close connections
             ws1.close()
             ws2.close()
+
+@pytest.mark.asyncio
+async def test_websocket_message_recipient_not_connected(client):
+    """Test sending a message to a non-connected recipient."""
+    # Generate JWT token for sender
+    user1_address = "0x1234567890abcdef1234567890abcdef12345678"
+    non_existent_address = "0x9999999999999999999999999999999999999999"
+    success, token = utils.generate_jwt(user1_address)
+    assert success, f"Failed to generate token: {token}"
+    
+    # Connect sender only
+    with client.websocket_connect(f"/ws/chat?token={token}") as ws1:
+        # Send message to non-existent recipient
+        message = {
+            "type": "message",
+            "to": non_existent_address,
+            "data": "Hello to nobody!"
+        }
+        ws1.send_json(message)
+        
+        # Check sender receives error
+        response = ws1.receive_json()
+        assert response == {"type": "error", "message": f"Recipient not connected: {non_existent_address}"}
+        
+        # Explicitly close connection
+        ws1.close()

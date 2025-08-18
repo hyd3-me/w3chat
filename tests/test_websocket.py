@@ -27,21 +27,38 @@ async def test_websocket_message(client):
     success2, token2 = utils.generate_jwt(user2_address)
     assert success2, f"Failed to generate token2: {token2}"
     
+@pytest.mark.asyncio
+async def test_websocket_message(client):
+    """Test sending a message between two WebSocket clients."""
+    # Generate JWT tokens for two users
+    user1_address = "0x1234567890abcdef1234567890abcdef12345678"
+    user2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    success1, token1 = utils.generate_jwt(user1_address)
+    assert success1, f"Failed to generate token1: {token1}"
+    success2, token2 = utils.generate_jwt(user2_address)
+    assert success2, f"Failed to generate token2: {token2}"
+    
     # Connect two users
     with client.websocket_connect(f"/ws/chat?token={token1}") as ws1:
         with client.websocket_connect(f"/ws/chat?token={token2}") as ws2:
             # Send message from user1 to user2
             message = {
+                "type": "message",
                 "to": user2_address,
-                "content": "Hello from user1!"
+                "data": "Hello from user1!"
             }
             ws1.send_json(message)
             
-            # Receive message on user2
+            # Check sender receives acknowledgment
+            ack = ws1.receive_json()
+            assert ack == {"type": "ack"}
+            
+            # Check recipient receives the message
             received = ws2.receive_json()
+            assert received["type"] == "message"
             assert received["from"] == user1_address
-            assert received["content"] == message["content"]
-                        
+            assert received["data"] == message["data"]
+            
             # Explicitly close connections
             ws1.close()
             ws2.close()

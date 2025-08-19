@@ -39,3 +39,36 @@ def user_account(web3):
             json.dump(secret_data, f, indent=2)
     
     return account
+
+@pytest.fixture
+def user_1():
+    """Generate address and JWT token for user 1."""
+    address = "0x1234567890abcdef1234567890abcdef12345678"
+    success, token = utils.generate_jwt(address)
+    assert success, f"Failed to generate token: {token}"
+    return {"address": address, "token": token}
+
+@pytest.fixture
+def user_2():
+    """Generate address and JWT token for user 2."""
+    address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    success, token = utils.generate_jwt(address)
+    assert success, f"Failed to generate token: {token}"
+    return {"address": address, "token": token}
+
+@pytest.fixture
+def channel_name(user_1, user_2):
+    """Generate channel name from user_1 and user_2 addresses."""
+    return utils.generate_channel_name(user_1["address"], user_2["address"])
+
+@pytest.fixture
+def websocket_1(client, user_1):
+    """Connect WebSocket client for user 1 and close after test."""
+    with client.websocket_connect(f"/ws/chat?token={user_1['token']}") as ws:
+        yield ws
+
+@pytest.fixture
+def websocket_2(client, user_2):
+    """Connect WebSocket client for user 2 and close after test."""
+    with client.websocket_connect(f"/ws/chat?token={user_2['token']}") as ws:
+        yield ws

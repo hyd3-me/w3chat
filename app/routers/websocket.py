@@ -12,6 +12,8 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 connections = {}
 # Store channel subscriptions as a dictionary of lists
 channels = {}
+# Store channel requests as a dictionary
+channel_requests = {}
 
 async def add_connection(address: str, websocket: WebSocket):
     """Add a WebSocket connection for the given address."""
@@ -39,6 +41,16 @@ async def send_to_subscribers(recipient_connections: list[WebSocket], message: d
     for recipient_ws in recipient_connections:
         await recipient_ws.send_json(message)
     logger.info("Message sent successfully")
+
+async def send_ack(websocket: WebSocket):
+    """Send acknowledgment to the websocket."""
+    await websocket.send_json({"type": "ack"})
+    logger.debug("Sent acknowledgment")
+
+async def add_channel_request(channel_name: str, sender_address: str):
+    """Store a channel request."""
+    channel_requests[channel_name] = {"from": sender_address}
+    logger.debug("Channel request created")
 
 async def process_ping(websocket: WebSocket, data: dict, sender_address: str):
     """Process ping message and send pong response."""
@@ -114,11 +126,48 @@ async def process_channel(websocket: WebSocket, data: dict, sender_address: str)
         "data": data_content
     })
 
+async def process_channel_request(websocket: WebSocket, data: dict, sender_address: str):
+    """Process channel request and notify recipient."""
+    to_address = data.get("to")
+    if not to_address:
+        await websocket.send_json({"type": "error", "message": "Invalid recipient address"})
+        logger.warning("Invalid recipient address")
+        return
+    
+    # Generate channel name
+    channel_name = utils.generate_channel_name(sender_address, to_address)
+    
+    # Check if channel or request already exists
+    if channel_name in channels:
+        await websocket.send_json({"type": "error", "message": "Channel already exists"})
+        logger.warning("Channel already exists")
+        return
+    if channel_name in channel_requests:
+        await websocket.send_json({"type": "error", "message": "Channel request already exists"})
+        logger.warning("Channel request already exists")
+        return
+    
+    # Store channel request
+    await add_channel_request(channel_name, sender_address)
+    
+    # Send acknowledgment to sender
+    await send_ack(websocket)
+    
+    # Notify recipient if online
+    recipient_connections = connections.get(to_address, [])
+    if recipient_connections:
+        await send_to_subscribers(recipient_connections, {
+            "type": "channel_request",
+            "from": sender_address,
+            "channel": channel_name
+        })
+
 process_map = {
     "ping": process_ping,
     "message": process_message,
     "subscribe": process_subscribe,
     "channel": process_channel,
+    "channel_request": process_channel_request,
 }
 
 async def process_type(websocket: WebSocket, sender_address: str):

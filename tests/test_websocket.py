@@ -137,7 +137,7 @@ async def test_websocket_channel_subscription(client):
     """Test subscribing to a channel and receiving messages."""
     # Generate JWT tokens for two users
     user1_address = "0x1234567890abcdef1234567890abcdef12345678"
-    user2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    user2_address = "0xabcdef1234567890abcdef1234567890abcdef11"
     success1, token1 = utils.generate_jwt(user1_address)
     assert success1, f"Failed to generate token1: {token1}"
     success2, token2 = utils.generate_jwt(user2_address)
@@ -187,3 +187,16 @@ async def test_websocket_channel_subscription(client):
             # Explicitly close connections
             ws1.close()
             ws2.close()
+
+@pytest.mark.asyncio
+async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_2, channel_name):
+    """Test sending a channel request and notifying recipient."""
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    ws1_ack = websocket_1.receive_json()
+    assert ws1_ack == {"type": "ack"}
+    ws2_notification = websocket_2.receive_json()
+    assert ws2_notification == {
+        "type": "channel_request",
+        "from": user_1["address"],
+        "channel": channel_name
+    }

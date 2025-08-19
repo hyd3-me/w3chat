@@ -72,3 +72,17 @@ def websocket_2(client, user_2):
     """Connect WebSocket client for user 2 and close after test."""
     with client.websocket_connect(f"/ws/chat?token={user_2['token']}") as ws:
         yield ws
+
+@pytest.fixture
+def user_3():
+    """Generate address and JWT token for user 3."""
+    address = "0x9999999999999999999999999999999999999999"
+    success, token = utils.generate_jwt(address)
+    assert success, f"Failed to generate token: {token}"
+    return {"address": address, "token": token}
+
+@pytest.fixture
+def websocket_3(client, user_3):
+    """Connect WebSocket client for user 3 and close after test."""
+    with client.websocket_connect(f"/ws/chat?token={user_3['token']}") as ws:
+        yield ws

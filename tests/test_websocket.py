@@ -1,6 +1,6 @@
 # tests/test_websocket.py
 import pytest
-from app import utils
+from app import utils, storage
 
 @pytest.mark.asyncio
 async def test_websocket_connect(client):
@@ -269,3 +269,21 @@ async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2
     # Check that requester receives rejection notification
     ws1_info = websocket_1.receive_json()
     assert ws1_info == {"type": "info", "message": f"Channel request rejected by {user_2['address']}"}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_access_validation(websocket_1, websocket_2, websocket_3, channel_name):
+    """Test that only channel participants can send messages to the channel."""
+
+    # Ensure channel exists and subscribe participants
+    success, msg = await storage.ensure_channel(channel_name, [websocket_1, websocket_2])
+    assert success, f"Failed to ensure channel: {msg}"
+
+    # Third user tries to send a message to the channel
+    message = {
+        "type": "channel",
+        "channel": channel_name,
+        "data": "Unauthorized message!"
+    }
+    websocket_3.send_json(message)
+    ws3_response = websocket_3.receive_json()
+    assert ws3_response == {"type": "error", "message": "Unauthorized access to channel"}

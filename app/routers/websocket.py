@@ -107,6 +107,12 @@ async def process_channel(websocket: WebSocket, data: dict, sender_address: str)
         logger.warning("Invalid channel message format")
         return
     
+    # Check if sender is a participant in the channel
+    if not utils.is_channel_participant(channel_name, sender_address):
+        await websocket.send_json({"type": "error", "message": "Unauthorized access to channel"})
+        logger.warning(f"Unauthorized access to channel {channel_name} by {sender_address}")
+        return
+    
     # Channel-based message handling
     recipient_connections = channels.get(channel_name, [])
     if not recipient_connections:

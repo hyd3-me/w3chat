@@ -220,3 +220,19 @@ def delete_channel(channel_name: str) -> tuple[bool, str]:
         return True, f"Channel {channel_name} does not exist"
     except Exception as e:
         return False, f"Failed to delete channel {channel_name}: {str(e)}"
+
+def is_channel_participant(channel_name: str, address: str) -> bool:
+    """Check if the address is a participant in the channel.
+
+    Args:
+        channel_name: The name of the channel (format: address1:address2).
+        address: The address to check.
+
+    Returns:
+        bool: True if the address is a participant, False otherwise.
+    """
+    try:
+        address1, address2 = channel_name.split(":")
+        return address.lower() in {address1.lower(), address2.lower()}
+    except ValueError:
+        return False

@@ -197,6 +197,35 @@ async def process_channel_approve(websocket: WebSocket, data: dict, sender_addre
     # Notify subscribers
     await notify_channel_creation(channel_name)
 
+async def process_channel_reject(websocket: WebSocket, data: dict, sender_address: str):
+    """Process channel request rejection and notify the requester."""
+    channel_name = data.get("channel")
+    if not channel_name:
+        await websocket.send_json({"type": "error", "message": "Invalid channel name"})
+        logger.warning("Invalid channel name")
+        return
+    if channel_name not in channel_requests:
+        await websocket.send_json({"type": "error", "message": "No such channel request"})
+        logger.warning("No such channel request")
+        return
+    
+    # Get requester address
+    requester_address = channel_requests[channel_name]["from"]
+    
+    # Delete channel request
+    success, msg = utils.delete_channel_request(channel_name)
+    
+    # Send acknowledgment to rejector
+    await send_ack(websocket)
+    
+    # Notify requester if online
+    requester_connections = connections.get(requester_address, [])
+    if requester_connections:
+        await send_to_subscribers(requester_connections, {
+            "type": "info",
+            "message": f"Channel request rejected by {sender_address}",
+        })
+
 process_map = {
     "ping": process_ping,
     "message": process_message,
@@ -204,6 +233,7 @@ process_map = {
     "channel": process_channel,
     "channel_request": process_channel_request,
     "channel_approve": process_channel_approve,
+    "channel_reject": process_channel_reject,
 }
 
 async def process_type(websocket: WebSocket, sender_address: str):

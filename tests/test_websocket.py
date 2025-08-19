@@ -245,3 +245,32 @@ async def test_websocket_channel_auto_subscribe(websocket_1, websocket_2, user_1
     assert ws1_info == {"type": "info", "message": "Channel created", "channel": channel_name}
     ws2_info = websocket_2.receive_json()
     assert ws2_info == {"type": "info", "message": "Channel created", "channel": channel_name}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2, channel_name):
+    """Test rejecting a channel request and notifying the requester."""
+    # Clean up channel and channel request state before test
+    success, msg = utils.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+    success, msg = utils.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+
+    # Send channel request
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    ws1_ack = websocket_1.receive_json()  # Ack
+    assert ws1_ack == {"type": "ack"}
+    ws2_notification = websocket_2.receive_json()  # Notification
+    assert ws2_notification == {
+        "type": "channel_request",
+        "from": user_1["address"],
+        "channel": channel_name
+    }
+
+    # Reject channel request
+    websocket_2.send_json({"type": "channel_reject", "channel": channel_name})
+    ws2_ack = websocket_2.receive_json()  # Ack
+    assert ws2_ack == {"type": "ack"}
+
+    # Check that requester receives rejection notification
+    ws1_info = websocket_1.receive_json()
+    assert ws1_info == {"type": "info", "message": f"Channel request rejected by {user_2['address']}"}

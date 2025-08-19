@@ -289,3 +289,37 @@ async def test_websocket_channel_access_validation(websocket_1, websocket_2, web
     websocket_3.send_json(message)
     ws3_response = websocket_3.receive_json()
     assert ws3_response == {"type": "error", "message": "Unauthorized access to channel"}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_approve_validation(websocket_1, websocket_2, websocket_3, user_1, user_2, user_3, channel_name, store):
+    """Test that only non-requester participants can approve channel creation."""
+
+    # Clean up channel and channel request state
+    success, msg = await store.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+    success, msg = await store.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+
+    # Check that channel does not exist
+    assert not await store.channel_exists(channel_name), f"Channel {channel_name} should not exist"
+
+    # User1 sends channel request to User2
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    ws1_ack = websocket_1.receive_json()  # Ack
+    assert ws1_ack == {"type": "ack"}
+    ws2_notification = websocket_2.receive_json()  # Notification
+    assert ws2_notification == {
+        "type": "channel_request",
+        "from": user_1["address"],
+        "channel": channel_name
+    }
+
+    # Test case 1: User1 (requester) tries to approve own request
+    websocket_1.send_json({"type": "channel_approve", "channel": channel_name})
+    ws1_response = websocket_1.receive_json()
+    assert ws1_response == {"type": "error", "message": "Requester cannot approve own channel request"}
+
+    # Test case 2: User3 (non-participant) tries to approve
+    websocket_3.send_json({"type": "channel_approve", "channel": channel_name})
+    ws3_response = websocket_3.receive_json()
+    assert ws3_response == {"type": "error", "message": "Unauthorized channel approval"}

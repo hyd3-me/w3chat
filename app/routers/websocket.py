@@ -143,10 +143,26 @@ async def process_channel_approve(websocket: WebSocket, data: dict, sender_addre
         await websocket.send_json({"type": "error", "message": "No such channel request"})
         logger.warning("No such channel request")
         return
-    await store.add_channel(channel_name)
-    # Get sender and recipient addresses
+    
+    # Check if sender is a participant in the channel and not the requester
     requester_address = store.channel_requests[channel_name]["from"]
+    if sender_address == requester_address:
+        await websocket.send_json({"type": "error", "message": "Requester cannot approve own channel request"})
+        logger.warning(f"Requester {sender_address} attempted to approve own channel request for {channel_name}")
+        return
+    if not utils.is_channel_participant(channel_name, sender_address):
+        await websocket.send_json({"type": "error", "message": "Unauthorized channel approval"})
+        logger.warning(f"Unauthorized channel approval for {channel_name} by {sender_address}")
+        return
+    
+    await store.add_channel(channel_name)
+    
+    # Delete channel request
     success, msg = await store.delete_channel_request(channel_name)
+    if not success:
+        await websocket.send_json({"type": "error", "message": msg})
+        logger.warning(msg)
+        return
     await send_ack(websocket)
 
     # Subscribe both participants

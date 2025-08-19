@@ -201,3 +201,22 @@ def delete_channel_request(channel_name: str) -> tuple[bool, str]:
         return True, f"Channel request {channel_name} does not exist"
     except Exception as e:
         return False, f"Failed to delete channel request {channel_name}: {str(e)}"
+
+def delete_channel(channel_name: str) -> tuple[bool, str]:
+    """Delete a channel if it exists.
+
+    Args:
+        channel_name: The name of the channel to delete.
+
+    Returns:
+        Tuple[bool, str]: (success, message) where success is True if the channel was deleted or didn't exist,
+                          and False if an error occurred.
+    """
+    from app.routers.websocket import channels
+    try:
+        if channel_name in channels:
+            del channels[channel_name]
+            return True, f"Channel {channel_name} deleted successfully"
+        return True, f"Channel {channel_name} does not exist"
+    except Exception as e:
+        return False, f"Failed to delete channel {channel_name}: {str(e)}"

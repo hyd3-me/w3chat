@@ -275,9 +275,11 @@ async def test_websocket_channel_access_validation(websocket_1, websocket_2, web
     """Test that only channel participants can send messages to the channel."""
 
     # Ensure channel exists and subscribe participants
-    success, msg = await store.ensure_channel(channel_name, [websocket_1, websocket_2])
-    assert success, f"Failed to ensure channel: {msg}"
-
+    status = await store.channel_exists(channel_name)
+    if not status:
+        success, msg = await store.ensure_channel(channel_name, [websocket_1, websocket_2])
+        assert success, f"Failed to ensure channel: {msg}"
+    
     # Third user tries to send a message to the channel
     message = {
         "type": "channel",

@@ -86,3 +86,14 @@ class Storage:
         except Exception as e:
             self.logger.error(f"Failed to ensure channel {channel_name}: {str(e)}")
             return False, f"Failed to ensure channel {channel_name}: {str(e)}"
+    
+    async def channel_exists(self, channel_name: str) -> bool:
+        """Check if a channel exists.
+
+        Args:
+            channel_name: The name of the channel to check.
+
+        Returns:
+            bool: True if the channel exists, False otherwise.
+        """
+        return channel_name in self.channels

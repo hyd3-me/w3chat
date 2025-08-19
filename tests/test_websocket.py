@@ -19,16 +19,6 @@ async def test_websocket_connect(client):
 
 @pytest.mark.asyncio
 async def test_websocket_message(client):
-    # Generate JWT tokens for two users
-    user1_address = "0x1234567890abcdef1234567890abcdef12345678"
-    user2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
-    success1, token1 = utils.generate_jwt(user1_address)
-    assert success1, f"Failed to generate token1: {token1}"
-    success2, token2 = utils.generate_jwt(user2_address)
-    assert success2, f"Failed to generate token2: {token2}"
-    
-@pytest.mark.asyncio
-async def test_websocket_message(client):
     """Test sending a message between two WebSocket clients."""
     # Generate JWT tokens for two users
     user1_address = "0x1234567890abcdef1234567890abcdef12345678"
@@ -133,64 +123,69 @@ async def test_websocket_multiple_connections_same_address(client):
                 ws_recipient2.close()
 
 @pytest.mark.asyncio
-async def test_websocket_channel_subscription(client):
-    """Test subscribing to a channel and receiving messages."""
-    # Generate JWT tokens for two users
-    user1_address = "0x1234567890abcdef1234567890abcdef12345678"
-    user2_address = "0xabcdef1234567890abcdef1234567890abcdef11"
-    success1, token1 = utils.generate_jwt(user1_address)
-    assert success1, f"Failed to generate token1: {token1}"
-    success2, token2 = utils.generate_jwt(user2_address)
-    assert success2, f"Failed to generate token2: {token2}"
-    
-    # Generate channel name
-    channel_name = utils.generate_channel_name(user1_address, user2_address)
-    
-    # Connect two users
-    with client.websocket_connect(f"/ws/chat?token={token1}") as ws1:
-        with client.websocket_connect(f"/ws/chat?token={token2}") as ws2:
-            # User1 subscribes to the channel
-            ws1.send_json({"type": "subscribe", "channel": channel_name})
-            ws1_ack = ws1.receive_json()
-            assert ws1_ack == {"type": "ack"}
-            
-            # User2 subscribes to the channel
-            ws2.send_json({"type": "subscribe", "channel": channel_name})
-            ws2_ack = ws2.receive_json()
-            assert ws2_ack == {"type": "ack"}
-            
-            # User1 sends a message to the channel
-            message = {
-                "type": "channel",
-                "channel": channel_name,
-                "data": "Hello in channel!"
-            }
-            ws1.send_json(message)
-            
-            # Check sender receives acknowledgment
-            ws1_message_ack = ws1.receive_json()
-            assert ws1_message_ack == {"type": "ack"}
-            
-            # Check both users receive the message
-            ws1_received = ws1.receive_json()
-            assert ws1_received["type"] == "message"
-            assert ws1_received["from"] == user1_address
-            assert ws1_received["channel"] == channel_name
-            assert ws1_received["data"] == message["data"]
-            
-            ws2_received = ws2.receive_json()
-            assert ws2_received["type"] == "message"
-            assert ws2_received["from"] == user1_address
-            assert ws2_received["channel"] == channel_name
-            assert ws2_received["data"] == message["data"]
-            
-            # Explicitly close connections
-            ws1.close()
-            ws2.close()
+async def test_websocket_channel_messaging(websocket_1, websocket_2, user_1, user_2, channel_name):
+    """Test sending and receiving messages in a channel after creation."""
+    # Clean up channel and channel request state before test
+    success, msg = utils.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+    success, msg = utils.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+
+    # Send channel request
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    ws1_ack = websocket_1.receive_json()  # Ack
+    assert ws1_ack == {"type": "ack"}
+    ws2_notification = websocket_2.receive_json()  # Notification
+    assert ws2_notification == {
+        "type": "channel_request",
+        "from": user_1["address"],
+        "channel": channel_name
+    }
+
+    # Approve channel
+    websocket_2.send_json({"type": "channel_approve", "channel": channel_name})
+    ws2_ack = websocket_2.receive_json()  # Ack
+    assert ws2_ack == {"type": "ack"}
+    ws1_info = websocket_1.receive_json()  # Channel creation notification
+    assert ws1_info == {"type": "info", "message": "Channel created", "channel": channel_name}
+    ws2_info = websocket_2.receive_json()  # Channel creation notification
+    assert ws2_info == {"type": "info", "message": "Channel created", "channel": channel_name}
+
+    # Send message to channel
+    message = {
+        "type": "channel",
+        "channel": channel_name,
+        "data": "Hello in channel!"
+    }
+    websocket_1.send_json(message)
+
+    # Check sender receives acknowledgment
+    ws1_message_ack = websocket_1.receive_json()
+    assert ws1_message_ack == {"type": "ack"}
+
+    # Check both users receive the message
+    ws1_received = websocket_1.receive_json()
+    assert ws1_received == {
+        "type": "message",
+        "from": user_1["address"],
+        "channel": channel_name,
+        "data": message["data"]
+    }
+    ws2_received = websocket_2.receive_json()
+    assert ws2_received == {
+        "type": "message",
+        "from": user_1["address"],
+        "channel": channel_name,
+        "data": message["data"]
+    }
 
 @pytest.mark.asyncio
 async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_2, channel_name):
     """Test sending a channel request and notifying recipient."""
+    success, msg = utils.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+    success, msg = utils.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
     websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
     ws1_ack = websocket_1.receive_json()
     assert ws1_ack == {"type": "ack"}

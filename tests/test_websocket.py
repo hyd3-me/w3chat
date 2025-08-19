@@ -1,6 +1,6 @@
 # tests/test_websocket.py
 import pytest
-from app import utils, storage
+from app import utils
 
 @pytest.mark.asyncio
 async def test_websocket_connect(client):
@@ -123,12 +123,12 @@ async def test_websocket_multiple_connections_same_address(client):
                 ws_recipient2.close()
 
 @pytest.mark.asyncio
-async def test_websocket_channel_messaging(websocket_1, websocket_2, user_1, user_2, channel_name):
+async def test_websocket_channel_messaging(websocket_1, websocket_2, user_1, user_2, channel_name, store):
     """Test sending and receiving messages in a channel after creation."""
     # Clean up channel and channel request state before test
-    success, msg = utils.delete_channel(channel_name)
+    success, msg = await store.delete_channel(channel_name)
     assert success, f"Failed to clean up channel: {msg}"
-    success, msg = utils.delete_channel_request(channel_name)
+    success, msg = await store.delete_channel_request(channel_name)
     assert success, f"Failed to clean up channel request: {msg}"
 
     # Send channel request
@@ -180,11 +180,11 @@ async def test_websocket_channel_messaging(websocket_1, websocket_2, user_1, use
     }
 
 @pytest.mark.asyncio
-async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_2, channel_name):
+async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_2, channel_name, store):
     """Test sending a channel request and notifying recipient."""
-    success, msg = utils.delete_channel(channel_name)
+    success, msg = await store.delete_channel(channel_name)
     assert success, f"Failed to clean up channel: {msg}"
-    success, msg = utils.delete_channel_request(channel_name)
+    success, msg = await store.delete_channel_request(channel_name)
     assert success, f"Failed to clean up channel request: {msg}"
     websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
     ws1_ack = websocket_1.receive_json()
@@ -197,10 +197,10 @@ async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_
     }
 
 @pytest.mark.asyncio
-async def test_websocket_channel_approve(websocket_1, websocket_2, user_1, user_2, channel_name):
+async def test_websocket_channel_approve(websocket_1, websocket_2, user_1, user_2, channel_name, store):
     """Test approving a channel request and creating the channel."""
     # Clean up channel request state before test
-    success, msg = utils.delete_channel_request(channel_name)
+    success, msg = await store.delete_channel_request(channel_name)
     assert success, f"Failed to clean up channel request: {msg}"
 
     websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
@@ -211,12 +211,12 @@ async def test_websocket_channel_approve(websocket_1, websocket_2, user_1, user_
     assert ws2_ack == {"type": "ack"}
 
 @pytest.mark.asyncio
-async def test_websocket_channel_auto_subscribe(websocket_1, websocket_2, user_1, user_2, channel_name):
+async def test_websocket_channel_auto_subscribe(websocket_1, websocket_2, user_1, user_2, channel_name, store):
     """Test automatic subscription of both participants after channel approval."""
     # Clean up channel request state before test
-    success, msg = utils.delete_channel_request(channel_name)
+    success, msg = await store.delete_channel_request(channel_name)
     assert success, f"Failed to clean up channel request: {msg}"
-    success, msg = utils.delete_channel(channel_name)
+    success, msg = await store.delete_channel(channel_name)
     assert success, f"Failed to clean up channel: {msg}"
 
     # Send channel request
@@ -242,12 +242,12 @@ async def test_websocket_channel_auto_subscribe(websocket_1, websocket_2, user_1
     assert ws2_info == {"type": "info", "message": "Channel created", "channel": channel_name}
 
 @pytest.mark.asyncio
-async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2, channel_name):
+async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2, channel_name, store):
     """Test rejecting a channel request and notifying the requester."""
     # Clean up channel and channel request state before test
-    success, msg = utils.delete_channel(channel_name)
+    success, msg = await store.delete_channel(channel_name)
     assert success, f"Failed to clean up channel: {msg}"
-    success, msg = utils.delete_channel_request(channel_name)
+    success, msg = await store.delete_channel_request(channel_name)
     assert success, f"Failed to clean up channel request: {msg}"
 
     # Send channel request
@@ -271,11 +271,11 @@ async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2
     assert ws1_info == {"type": "info", "message": f"Channel request rejected by {user_2['address']}"}
 
 @pytest.mark.asyncio
-async def test_websocket_channel_access_validation(websocket_1, websocket_2, websocket_3, channel_name):
+async def test_websocket_channel_access_validation(websocket_1, websocket_2, websocket_3, channel_name, store):
     """Test that only channel participants can send messages to the channel."""
 
     # Ensure channel exists and subscribe participants
-    success, msg = await storage.ensure_channel(channel_name, [websocket_1, websocket_2])
+    success, msg = await store.ensure_channel(channel_name, [websocket_1, websocket_2])
     assert success, f"Failed to ensure channel: {msg}"
 
     # Third user tries to send a message to the channel

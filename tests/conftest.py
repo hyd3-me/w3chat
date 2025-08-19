@@ -86,3 +86,9 @@ def websocket_3(client, user_3):
     """Connect WebSocket client for user 3 and close after test."""
     with client.websocket_connect(f"/ws/chat?token={user_3['token']}") as ws:
         yield ws
+
+@pytest.fixture
+def store():
+    """Return the server storage instance."""
+    from app.routers import websocket
+    return websocket.store

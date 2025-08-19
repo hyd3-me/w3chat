@@ -200,3 +200,17 @@ async def test_websocket_channel_request(websocket_1, websocket_2, user_1, user_
         "from": user_1["address"],
         "channel": channel_name
     }
+
+@pytest.mark.asyncio
+async def test_websocket_channel_approve(websocket_1, websocket_2, user_1, user_2, channel_name):
+    """Test approving a channel request and creating the channel."""
+    # Clean up channel request state before test
+    success, msg = utils.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    websocket_1.receive_json()  # Ack
+    websocket_2.receive_json()  # Notification
+    websocket_2.send_json({"type": "channel_approve", "channel": channel_name})
+    ws2_ack = websocket_2.receive_json()
+    assert ws2_ack == {"type": "ack"}

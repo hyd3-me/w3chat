@@ -158,12 +158,28 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
             "channel": channel_name
         })
 
+async def process_channel_approve(websocket: WebSocket, data: dict, sender_address: str):
+    """Process channel approval and create the channel."""
+    channel_name = data.get("channel")
+    if not channel_name:
+        await websocket.send_json({"type": "error", "message": "Invalid channel name"})
+        logger.warning("Invalid channel name")
+        return
+    if channel_name not in channel_requests:
+        await websocket.send_json({"type": "error", "message": "No such channel request"})
+        logger.warning("No such channel request")
+        return
+    await add_channel(channel_name)
+    del channel_requests[channel_name]
+    await send_ack(websocket)
+
 process_map = {
     "ping": process_ping,
     "message": process_message,
     "subscribe": process_subscribe,
     "channel": process_channel,
     "channel_request": process_channel_request,
+    "channel_approve": process_channel_approve,
 }
 
 async def process_type(websocket: WebSocket, sender_address: str):
@@ -171,7 +187,7 @@ async def process_type(websocket: WebSocket, sender_address: str):
     data = await websocket.receive_json()
     message_type = data.get("type")
     if not message_type or message_type not in process_map:
-        await websocket.send_json({"error": f"Invalid message type: {message_type}"})
+        await websocket.send_json({"type": "error", "message": f"Invalid message type: {message_type}"})
         logger.warning(f"Invalid message type received: {message_type}")
         return
     await process_map[message_type](websocket, data, sender_address)

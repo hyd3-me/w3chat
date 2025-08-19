@@ -73,9 +73,7 @@ async def process_message(websocket: WebSocket, data: dict, sender_address: str)
         logger.warning("Recipient not connected")
         return
     
-    # Send acknowledgment to sender
-    await websocket.send_json({"type": "ack"})
-    logger.debug(f"Sent ack to {sender_address}")
+    await send_ack(websocket)
     
     # Forward message to all recipient connections
     await send_to_subscribers(recipient_connections, {
@@ -97,8 +95,7 @@ async def process_subscribe(websocket: WebSocket, data: dict, sender_address: st
     if websocket not in channels[channel_name]:
         channels[channel_name].append(websocket)
     
-    await websocket.send_json({"type": "ack"})
-    logger.debug("Subscribed to channel")
+    await send_ack(websocket)
 
 async def process_channel(websocket: WebSocket, data: dict, sender_address: str):
     """Process channel message type and forward to all channel subscribers."""
@@ -117,8 +114,7 @@ async def process_channel(websocket: WebSocket, data: dict, sender_address: str)
         logger.warning("No subscribers in channel")
         return
     
-    await websocket.send_json({"type": "ack"})
-    logger.debug("Sent acknowledgment to sender")
+    await send_ack(websocket)
     await send_to_subscribers(recipient_connections, {
         "type": "message",
         "from": sender_address,

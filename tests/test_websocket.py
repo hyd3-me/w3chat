@@ -323,3 +323,12 @@ async def test_websocket_channel_approve_validation(websocket_1, websocket_2, we
     websocket_3.send_json({"type": "channel_approve", "channel": channel_name})
     ws3_response = websocket_3.receive_json()
     assert ws3_response == {"type": "error", "message": "Unauthorized channel approval"}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_request_self_channel(websocket_1, websocket_2, user_1, user_2, channel_name, store):
+    """Test that a user cannot create a channel with themselves."""
+
+    # Test case 1: User1 tries to create channel with self
+    websocket_1.send_json({"type": "channel_request", "to": user_1["address"]})
+    ws1_response = websocket_1.receive_json()
+    assert ws1_response == {"type": "error", "message": "Cannot create channel with self"}

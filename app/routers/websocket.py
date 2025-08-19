@@ -104,6 +104,12 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
         logger.warning("Invalid recipient address")
         return
     
+    # Check if trying to create channel with self
+    if sender_address == to_address:
+        await websocket.send_json({"type": "error", "message": "Cannot create channel with self"})
+        logger.warning(f"Attempted to create channel with self by {sender_address}")
+        return
+    
     # Generate channel name
     channel_name = utils.generate_channel_name(sender_address, to_address)
     

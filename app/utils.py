@@ -24,15 +24,15 @@ class AuthRequest(BaseModel):
     message: str
     signature: str
 
-def set_environment_variable(name: str, value: str):
+def set_environment_variable(name: str, value: str) -> None:
     """Set an environment variable."""
     os.environ[name] = value
 
-def join_paths(*paths):
+def join_paths(*paths: str) -> str:
     """Join multiple paths into a single path."""
     return os.path.join(*paths)
 
-def remove_path(path):
+def remove_path(path: str) -> None:
     """Remove a file or directory."""
     if os.path.exists(path):
         if os.path.isdir(path):
@@ -40,19 +40,19 @@ def remove_path(path):
         else:
             os.remove(path)
 
-def get_source_path():
+def get_source_path() -> str:
     """Return the absolute path to the project root (w3chat/source)."""
     return os.path.abspath(join_paths(os.path.dirname(__file__), '..'))
 
-def get_data_path():
+def get_data_path() -> str:
     """Return the absolute path to the data directory (w3chat/data)."""
     return os.path.abspath(join_paths(get_source_path(), '..', 'data'))
 
-def path_exists(path):
+def path_exists(path: str) -> bool:
     """Check if a given path exists."""
     return os.path.exists(path)
 
-def get_secret_data():
+def get_secret_data() -> dict:
     """Read secret data from w3chat/data/SECRET_DATA.json."""
     secret_file = join_paths(get_data_path(), 'SECRET_DATA.json')
     try:
@@ -63,7 +63,7 @@ def get_secret_data():
     except Exception as e:
         raise Exception(f"Failed to load secret data: {str(e)}")
 
-def get_secret_key():
+def get_secret_key() -> str:
     """Get SECRET_KEY from secret data, with a fallback."""
     secret_data = get_secret_data()
     secret_key = secret_data.get('SECRET_KEY')
@@ -74,7 +74,7 @@ def get_secret_key():
 # Initialize SECRET_KEY at module load
 SECRET_KEY = get_secret_key()
 
-def verify_signature(auth: AuthRequest):
+def verify_signature(auth: AuthRequest) -> tuple[bool, str]:
     """Verify the signature in AuthRequest, return (success, message)."""
     try:
         w3 = Web3()
@@ -88,7 +88,7 @@ def verify_signature(auth: AuthRequest):
     except Exception as e:
         return False, f"Signature verification failed: {str(e)}"
 
-def generate_jwt(address: str):
+def generate_jwt(address: str) -> tuple[bool, str]:
     """Generate JWT for the given address, return (success, token or message)."""
     try:
         payload = {
@@ -100,7 +100,7 @@ def generate_jwt(address: str):
     except Exception as e:
         return False, f"JWT generation failed: {str(e)}"
 
-def decode_jwt(token: str):
+def decode_jwt(token: str) -> tuple[bool, str]:
     """Decode JWT and return (success, address or message)."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -111,11 +111,11 @@ def decode_jwt(token: str):
     except JWTError as e:
         return False, f"JWT verification failed: {str(e)}"
 
-def get_logger(name: str):
+def get_logger(name: str) -> logging.Logger:
     """Return a logger with name prefixed by 'w3chat'."""
     return logging.getLogger(f"{'.'.join([LOGGER_PREFIX, name]) if name else LOGGER_PREFIX}")
 
-def setup_logging():
+def setup_logging() -> None:
     from .config import config_map
     """Setup logging based on the specified mode."""
     mode = os.getenv('MODE', 'development')
@@ -182,3 +182,22 @@ def generate_channel_name(address_1: str, address_2: str) -> str:
     """Generate channel name from two addresses, ordered lexicographically."""
     sorted_addresses = sorted([address_1, address_2])
     return f"{sorted_addresses[0]}:{sorted_addresses[1]}"
+
+def delete_channel_request(channel_name: str) -> tuple[bool, str]:
+    """Delete a channel request if it exists.
+
+    Args:
+        channel_name: The name of the channel request to delete.
+
+    Returns:
+        Tuple[bool, str]: (success, message) where success is True if the channel request was deleted or didn't exist,
+                          and False if an error occurred.
+    """
+    from app.routers.websocket import channel_requests
+    try:
+        if channel_name in channel_requests:
+            del channel_requests[channel_name]
+            return True, f"Channel request {channel_name} deleted successfully"
+        return True, f"Channel request {channel_name} does not exist"
+    except Exception as e:
+        return False, f"Failed to delete channel request {channel_name}: {str(e)}"

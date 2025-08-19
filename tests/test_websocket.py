@@ -214,3 +214,34 @@ async def test_websocket_channel_approve(websocket_1, websocket_2, user_1, user_
     websocket_2.send_json({"type": "channel_approve", "channel": channel_name})
     ws2_ack = websocket_2.receive_json()
     assert ws2_ack == {"type": "ack"}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_auto_subscribe(websocket_1, websocket_2, user_1, user_2, channel_name):
+    """Test automatic subscription of both participants after channel approval."""
+    # Clean up channel request state before test
+    success, msg = utils.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+    success, msg = utils.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+
+    # Send channel request
+    websocket_1.send_json({"type": "channel_request", "to": user_2["address"]})
+    ws1_ack = websocket_1.receive_json()  # Ack
+    assert ws1_ack == {"type": "ack"}
+    ws2_notification = websocket_2.receive_json()  # Notification
+    assert ws2_notification == {
+        "type": "channel_request",
+        "from": user_1["address"],
+        "channel": channel_name
+    }
+
+    # Approve channel
+    websocket_2.send_json({"type": "channel_approve", "channel": channel_name})
+    ws2_ack = websocket_2.receive_json()  # Ack
+    assert ws2_ack == {"type": "ack"}
+
+    # Check that both participants receive channel creation notification
+    ws1_info = websocket_1.receive_json()
+    assert ws1_info == {"type": "info", "message": "Channel created", "channel": channel_name}
+    ws2_info = websocket_2.receive_json()
+    assert ws2_info == {"type": "info", "message": "Channel created", "channel": channel_name}

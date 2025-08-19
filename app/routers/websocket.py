@@ -158,6 +158,20 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
             "channel": channel_name
         })
 
+async def subscribe_to_channel(channel_name: str, websockets: list[WebSocket]):
+    """Subscribe a list of websockets to a channel."""
+    for ws in websockets:
+        if ws not in channels[channel_name]:
+            channels[channel_name].append(ws)
+            logger.debug(f"Subscribed websocket to channel {channel_name}")
+
+async def notify_channel_creation(channel_name: str):
+    """Notify all subscribers of a channel about its creation."""
+    recipient_connections = channels.get(channel_name, [])
+    for ws in recipient_connections:
+        await ws.send_json({"type": "info", "message": "Channel created", "channel": channel_name})
+    logger.debug(f"Notified subscribers of channel {channel_name} creation")
+
 async def process_channel_approve(websocket: WebSocket, data: dict, sender_address: str):
     """Process channel approval and create the channel."""
     channel_name = data.get("channel")
@@ -170,8 +184,18 @@ async def process_channel_approve(websocket: WebSocket, data: dict, sender_addre
         logger.warning("No such channel request")
         return
     await add_channel(channel_name)
-    del channel_requests[channel_name]
+    # Get sender and recipient addresses
+    requester_address = channel_requests[channel_name]["from"]
+    success, msg = utils.delete_channel_request(channel_name)
     await send_ack(websocket)
+
+    # Subscribe both participants
+    sender_ws = connections.get(sender_address, [])
+    requester_ws = connections.get(requester_address, [])
+    await subscribe_to_channel(channel_name, sender_ws + requester_ws)
+    
+    # Notify subscribers
+    await notify_channel_creation(channel_name)
 
 process_map = {
     "ping": process_ping,

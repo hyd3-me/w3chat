@@ -332,3 +332,19 @@ async def test_websocket_channel_request_self_channel(websocket_1, websocket_2, 
     websocket_1.send_json({"type": "channel_request", "to": user_1["address"]})
     ws1_response = websocket_1.receive_json()
     assert ws1_response == {"type": "error", "message": "Cannot create channel with self"}
+
+@pytest.mark.asyncio
+async def test_websocket_subscribe_invalid_address(channel_name, store, client):
+    """Test that subscribing with an invalid address fails."""
+    # Clean up channel state
+    success, msg = await store.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+
+    # Test case 1: Try to subscribe with invalid address
+    invalid_address = "0xInvalidAddress"
+    success, token = utils.generate_jwt(invalid_address)
+    assert success, f"Failed to generate token for invalid address: {token}"
+    with client.websocket_connect(f"/ws/chat?token={token}") as ws_invalid:
+        ws_invalid.send_json({"type": "subscribe", "channel": channel_name})
+        response = ws_invalid.receive_json()
+        assert response == {"type": "error", "message": f"Invalid address: {invalid_address}"}

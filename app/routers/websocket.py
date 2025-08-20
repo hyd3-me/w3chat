@@ -67,7 +67,11 @@ async def process_subscribe(websocket: WebSocket, data: dict, sender_address: st
     
     # Add channel and subscribe websocket
     await store.add_channel(channel_name)
-    await store.subscribe_to_channel(channel_name, [sender_address])
+    success, msg = await store.subscribe_to_channel(channel_name, [sender_address])
+    if not success:
+        await websocket.send_json({"type": "error", "message": msg})
+        logger.warning(msg)
+        return
     
     await send_ack(websocket)
 
@@ -178,7 +182,11 @@ async def process_channel_approve(websocket: WebSocket, data: dict, sender_addre
     await send_ack(websocket)
 
     # Subscribe both participants
-    await store.subscribe_to_channel(channel_name, [sender_address, requester_address])
+    success, msg = await store.subscribe_to_channel(channel_name, [sender_address, requester_address])
+    if not success:
+        await websocket.send_json({"type": "error", "message": msg})
+        logger.warning(msg)
+        return
     
     # Notify subscribers
     await store.notify_channel_creation(channel_name)

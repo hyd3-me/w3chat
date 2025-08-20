@@ -1,6 +1,7 @@
 # app/utils.py
 import os
 import json
+import re
 import logging
 import logging.config
 import logging.handlers
@@ -198,3 +199,9 @@ def is_channel_participant(channel_name: str, address: str) -> bool:
         return address.lower() in {address1.lower(), address2.lower()}
     except ValueError:
         return False
+
+def is_valid_address(address: str) -> bool:
+    """Check if the given address is a valid Ethereum address."""
+    # Check if address matches the pattern: 0x followed by 40 hexadecimal characters
+    pattern = r"^0x[a-fA-F0-9]{40}$"
+    return bool(re.match(pattern, address))

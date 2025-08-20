@@ -30,12 +30,16 @@ class Storage:
             self.channels[channel_name] = []
         self.logger.debug("Channel added")
 
-    async def subscribe_to_channel(self, channel_name: str, addresses: list[str]) -> None:
+    async def subscribe_to_channel(self, channel_name: str, addresses: list[str]) -> tuple[bool, str]:
         """Subscribe a list of addresses to a channel."""
         for address in addresses:
+            if not utils.is_valid_address(address):
+                self.logger.warning(f"Invalid address for subscription: {address}")
+                return False, f"Invalid address: {address}"
             if address not in self.channels[channel_name]:
                 self.channels[channel_name].append(address)
                 self.logger.debug(f"Subscribed address {address} to channel {channel_name}")
+        return True, "Subscription successful"
 
     async def add_channel_request(self, channel_name: str, sender_address: str) -> None:
         """Store a channel request."""
@@ -84,6 +88,9 @@ class Storage:
                 self.channels[channel_name] = []
                 self.logger.debug(f"Channel {channel_name} created")
             for address in addresses:
+                if not utils.is_valid_address(address):
+                    self.logger.warning(f"Invalid address for channel {channel_name}: {address}")
+                    return False, f"Invalid address: {address}"
                 if address not in self.channels[channel_name]:
                     self.channels[channel_name].append(address)
                     self.logger.debug(f"Subscribed address {address} to channel {channel_name}")

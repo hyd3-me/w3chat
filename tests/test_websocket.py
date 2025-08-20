@@ -363,3 +363,45 @@ async def test_websocket_channel_name_validation(websocket_1, user_1, user_2, ch
     websocket_1.send_json({"type": "channel_request", "to": invalid_address})
     ws1_response = websocket_1.receive_json()
     assert ws1_response == {"type": "error", "message": "Invalid Ethereum address"}
+
+@pytest.mark.asyncio
+async def test_websocket_multiple_websockets_channel_messaging(websocket_1, websocket_1_2, websocket_2, websocket_2_2, user_1, user_2, channel_name, store):
+    """Test that a channel message is received by all WebSocket connections of subscribed addresses."""
+    # Create channel and subscribe both addresses
+    success, msg = await store.ensure_channel(channel_name, [user_1["address"], user_2["address"]])
+
+    # Send message from websocket_1
+    message = {
+        "type": "channel",
+        "channel": channel_name,
+        "data": "Test message from user_1"
+    }
+    websocket_1.send_json(message)
+
+    # Check acknowledgment on websocket_1
+    ws1_1_ack = websocket_1.receive_json()
+    assert ws1_1_ack == {"type": "ack"}
+
+    # Define expected messages
+    expected_message = {
+        "type": "message",
+        "from": user_1["address"],
+        "channel": channel_name,
+        "data": message["data"]
+    }
+
+    # Check message received on ws1_1 (user_1's first WebSocket)
+    ws1_1_received = websocket_1.receive_json()
+    assert ws1_1_received == expected_message
+
+    # Check message received on websocket_1_2 (user_1's second WebSocket)
+    ws1_2_received = websocket_1_2.receive_json()
+    assert ws1_2_received == expected_message
+
+    # Check message received on websocket_2 (user_2's first WebSocket)
+    ws2_received = websocket_2.receive_json()
+    assert ws2_received == expected_message
+
+    # Check message received on websocket_2_2 (user_2's second WebSocket)
+    ws2_2_received = websocket_2_2.receive_json()
+    assert ws2_2_received == expected_message

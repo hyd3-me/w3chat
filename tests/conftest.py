@@ -92,3 +92,15 @@ def store():
     """Return the server storage instance."""
     from app.routers import websocket
     return websocket.store
+
+@pytest.fixture
+def websocket_1_2(client, user_1):
+    """Fixture to create a second WebSocket connection for user_1."""
+    with client.websocket_connect(f"/ws/chat?token={user_1['token']}") as ws:
+        yield ws
+
+@pytest.fixture
+def websocket_2_2(client, user_2):
+    """Fixture to create a second WebSocket connection for user_2."""
+    with client.websocket_connect(f"/ws/chat?token={user_2['token']}") as ws:
+        yield ws

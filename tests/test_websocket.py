@@ -271,13 +271,13 @@ async def test_websocket_channel_reject(websocket_1, websocket_2, user_1, user_2
     assert ws1_info == {"type": "info", "message": f"Channel request rejected by {user_2['address']}"}
 
 @pytest.mark.asyncio
-async def test_websocket_channel_access_validation(websocket_1, websocket_2, websocket_3, channel_name, store):
+async def test_websocket_channel_access_validation(websocket_1, websocket_2, websocket_3, user_1, user_2, channel_name, store):
     """Test that only channel participants can send messages to the channel."""
 
     # Ensure channel exists and subscribe participants
     status = await store.channel_exists(channel_name)
     if not status:
-        success, msg = await store.ensure_channel(channel_name, [websocket_1, websocket_2])
+        success, msg = await store.ensure_channel(channel_name, [user_1["address"], user_2["address"]])
         assert success, f"Failed to ensure channel: {msg}"
     
     # Third user tries to send a message to the channel

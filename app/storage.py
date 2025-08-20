@@ -30,13 +30,12 @@ class Storage:
             self.channels[channel_name] = []
         self.logger.debug("Channel added")
 
-    async def subscribe_to_channel(self, channel_name: str, websockets: list[WebSocket]) -> None:
-        """Subscribe a list of websockets to a channel."""
-        await self.add_channel(channel_name)
-        for ws in websockets:
-            if ws not in self.channels[channel_name]:
-                self.channels[channel_name].append(ws)
-                self.logger.debug(f"Subscribed websocket to channel {channel_name}")
+    async def subscribe_to_channel(self, channel_name: str, addresses: list[str]) -> None:
+        """Subscribe a list of addresses to a channel."""
+        for address in addresses:
+            if address not in self.channels[channel_name]:
+                self.channels[channel_name].append(address)
+                self.logger.debug(f"Subscribed address {address} to channel {channel_name}")
 
     async def add_channel_request(self, channel_name: str, sender_address: str) -> None:
         """Store a channel request."""
@@ -45,9 +44,15 @@ class Storage:
 
     async def notify_channel_creation(self, channel_name: str) -> None:
         """Notify all subscribers of a channel about its creation."""
-        recipient_connections = self.channels.get(channel_name, [])
-        for ws in recipient_connections:
-            await ws.send_json({"type": "info", "message": "Channel created", "channel": channel_name})
+        recipient_addresses = self.channels.get(channel_name, [])
+        for address in recipient_addresses:
+            recipient_connections = self.connections.get(address, [])
+            for ws in recipient_connections:
+                try:
+                    await ws.send_json({"type": "info", "message": "Channel created", "channel": channel_name})
+                except (WebSocketDisconnect, RuntimeError) as e:
+                    self.logger.debug(f"Failed to notify {address} in channel {channel_name}: {str(e)}")
+                    continue
         self.logger.debug(f"Notified subscribers of channel {channel_name} creation")
 
     async def delete_channel(self, channel_name: str) -> tuple[bool, str]:
@@ -72,16 +77,16 @@ class Storage:
             self.logger.error(f"Failed to delete channel request {channel_name}: {str(e)}")
             return False, f"Failed to delete channel request {channel_name}: {str(e)}"
 
-    async def ensure_channel(self, channel_name: str, websockets: list[WebSocket]) -> tuple[bool, str]:
-        """Ensure a channel exists, creating it and subscribing websockets if it doesn't."""
+    async def ensure_channel(self, channel_name: str, addresses: list[str]) -> tuple[bool, str]:
+        """Ensure a channel exists, creating it and subscribing addresses if it doesn't."""
         try:
             if channel_name not in self.channels:
                 self.channels[channel_name] = []
                 self.logger.debug(f"Channel {channel_name} created")
-            for ws in websockets:
-                if ws not in self.channels[channel_name]:
-                    self.channels[channel_name].append(ws)
-                    self.logger.debug(f"Subscribed websocket to channel {channel_name}")
+            for address in addresses:
+                if address not in self.channels[channel_name]:
+                    self.channels[channel_name].append(address)
+                    self.logger.debug(f"Subscribed address {address} to channel {channel_name}")
             return True, f"Channel {channel_name} ensured"
         except Exception as e:
             self.logger.error(f"Failed to ensure channel {channel_name}: {str(e)}")

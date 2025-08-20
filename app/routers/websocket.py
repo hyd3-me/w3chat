@@ -10,10 +10,16 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 # Initialize storage
 store = storage.Storage()
 
-async def send_to_subscribers(recipient_connections: list[WebSocket], message: dict):
-    """Send a message to all recipient WebSocket connections."""
-    for recipient_ws in recipient_connections:
-        await recipient_ws.send_json(message)
+async def send_to_subscribers(recipient_addresses: list[str], message: dict):
+    """Send a message to all WebSocket connections of recipient addresses."""
+    for address in recipient_addresses:
+        recipient_connections = store.connections.get(address, [])
+        for ws in recipient_connections:
+            try:
+                await ws.send_json(message)
+            except (WebSocketDisconnect, RuntimeError) as e:
+                logger.debug(f"Failed to send message to WebSocket for address {address}: {str(e)}")
+                continue
     logger.info("Message sent successfully")
 
 async def send_ack(websocket: WebSocket):
@@ -45,7 +51,7 @@ async def process_message(websocket: WebSocket, data: dict, sender_address: str)
     await send_ack(websocket)
     
     # Forward message to all recipient connections
-    await send_to_subscribers(recipient_connections, {
+    await send_to_subscribers([to_address], {
         "type": "message",
         "from": sender_address,
         "data": data_content,
@@ -61,7 +67,7 @@ async def process_subscribe(websocket: WebSocket, data: dict, sender_address: st
     
     # Add channel and subscribe websocket
     await store.add_channel(channel_name)
-    await store.subscribe_to_channel(channel_name, [websocket])
+    await store.subscribe_to_channel(channel_name, [sender_address])
     
     await send_ack(websocket)
 
@@ -82,14 +88,14 @@ async def process_channel(websocket: WebSocket, data: dict, sender_address: str)
         return
     
     # Channel-based message handling
-    recipient_connections = store.channels.get(channel_name, [])
-    if not recipient_connections:
+    recipient_addresses = store.channels.get(channel_name, [])
+    if not recipient_addresses:
         await websocket.send_json({"type": "error", "message": f"No subscribers in channel: {channel_name}"})
         logger.warning("No subscribers in channel")
         return
     
     await send_ack(websocket)
-    await send_to_subscribers(recipient_connections, {
+    await send_to_subscribers(recipient_addresses, {
         "type": "message",
         "from": sender_address,
         "channel": channel_name,
@@ -132,7 +138,7 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
     # Notify recipient if online
     recipient_connections = store.connections.get(to_address, [])
     if recipient_connections:
-        await send_to_subscribers(recipient_connections, {
+        await send_to_subscribers([to_address], {
             "type": "channel_request",
             "from": sender_address,
             "channel": channel_name
@@ -172,9 +178,7 @@ async def process_channel_approve(websocket: WebSocket, data: dict, sender_addre
     await send_ack(websocket)
 
     # Subscribe both participants
-    sender_ws = store.connections.get(sender_address, [])
-    requester_ws = store.connections.get(requester_address, [])
-    await store.subscribe_to_channel(channel_name, sender_ws + requester_ws)
+    await store.subscribe_to_channel(channel_name, [sender_address, requester_address])
     
     # Notify subscribers
     await store.notify_channel_creation(channel_name)
@@ -203,7 +207,7 @@ async def process_channel_reject(websocket: WebSocket, data: dict, sender_addres
     # Notify requester if online
     requester_connections = store.connections.get(requester_address, [])
     if requester_connections:
-        await send_to_subscribers(requester_connections, {
+        await send_to_subscribers([requester_address], {
             "type": "info",
             "message": f"Channel request rejected by {sender_address}",
         })

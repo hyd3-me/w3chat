@@ -29,3 +29,18 @@ async def test_ensure_channel_invalid_address(store):
     assert not success, "Should fail for invalid address"
     assert f"Invalid channel name: {channel_name}" in msg, f"Expected error message, got: {msg}"
     assert channel_name not in store.channels, f"Channel {channel_name} should not be created"
+
+@pytest.mark.asyncio
+async def test_delete_channel(store):
+    """Test channel deletion with store.delete_channel."""
+    user_1_address = "0x1234567890abcdef1234567890abcdef12345678"
+    user_2_address = "0xabcdef1234567890abcdef1234567890abcdef12"
+    channel_name = utils.generate_channel_name(user_1_address, user_2_address)
+    
+    # Create channel
+    success, msg = await store.ensure_channel(channel_name, [user_1_address, user_2_address])
+    
+    # Delete channel
+    success, msg = await store.delete_channel(channel_name)
+    assert success, f"Failed to delete channel: {msg}"
+    assert channel_name not in store.channels, f"Channel {channel_name} should be deleted"

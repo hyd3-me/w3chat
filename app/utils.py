@@ -92,6 +92,8 @@ def verify_signature(auth: AuthRequest) -> tuple[bool, str]:
 def generate_jwt(address: str) -> tuple[bool, str]:
     """Generate JWT for the given address, return (success, token or message)."""
     try:
+        if not is_valid_address(address):
+            return False, "Invalid Ethereum address"
         payload = {
             "sub": address,
             "exp": datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)

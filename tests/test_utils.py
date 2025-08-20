@@ -27,3 +27,10 @@ def test_decode_jwt_valid():
     success, decoded_address = utils.decode_jwt(token)
     assert success, f"Failed to decode token: {decoded_address}"
     assert decoded_address == valid_address, f"Decoded address {decoded_address} does not match {valid_address}"
+
+def test_generate_jwt_invalid():
+    """Test JWT token generation for an invalid address."""
+    invalid_address = "0xInvalidAddress"
+    success, result = utils.generate_jwt(invalid_address)
+    assert not success, "Should fail for invalid address"
+    assert "Invalid Ethereum address" in result, f"Expected error message, got: {result}"

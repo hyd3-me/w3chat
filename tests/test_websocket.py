@@ -244,6 +244,18 @@ async def test_websocket_channel_name_validation(websocket_1, user_1, user_2, ch
     assert ws1_response == {"type": "error", "message": "Invalid Ethereum address"}
 
 @pytest.mark.asyncio
+async def test_websocket_disconnect(websocket_1, user_1, store):
+    """Test that a WebSocket connection is removed from store.connections on disconnect."""
+    # Check that the connection is added to store.connections
+    user1_ws_len = len(store.connections.get(user_1["address"], []))
+
+    # Close the WebSocket connection
+    websocket_1.close()
+
+    # Check that the connection is removed from store.connections
+    assert len(store.connections.get(user_1["address"], [])) == (user1_ws_len - 1), "WebSocket connections should be empty after disconnect"
+
+@pytest.mark.asyncio
 async def test_websocket_multiple_websockets_channel_messaging(websocket_1, websocket_1_2, websocket_2, websocket_2_2, user_1, user_2, channel_name, store):
     """Test that a channel message is received by all WebSocket connections of subscribed addresses."""
     # Create channel and subscribe both addresses

@@ -19,3 +19,11 @@ def test_generate_jwt():
     success, token = utils.generate_jwt(valid_address)
     assert success, f"Failed to generate token: {token}"
     assert isinstance(token, str), "Token should be a string"
+
+def test_decode_jwt_valid():
+    """Test JWT token decoding for a valid address."""
+    valid_address = "0x1234567890abcdef1234567890abcdef12345678"
+    success, token = utils.generate_jwt(valid_address)
+    success, decoded_address = utils.decode_jwt(token)
+    assert success, f"Failed to decode token: {decoded_address}"
+    assert decoded_address == valid_address, f"Decoded address {decoded_address} does not match {valid_address}"

@@ -207,3 +207,16 @@ def is_valid_address(address: str) -> bool:
     # Check if address matches the pattern: 0x followed by 40 hexadecimal characters
     pattern = r"^0x[a-fA-F0-9]{40}$"
     return bool(re.match(pattern, address))
+
+def is_valid_channel_name(channel_name: str) -> bool:
+    """Check if the given channel name is valid.
+
+    Args:
+        channel_name: The name of the channel to validate.
+
+    Returns:
+        bool: True if the channel name is valid, False otherwise.
+    """
+    # Channel names should be in the format address1:address2
+    pattern = r"^0x[a-fA-F0-9]{40}:0x[a-fA-F0-9]{40}$"
+    return bool(re.match(pattern, channel_name))

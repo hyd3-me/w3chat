@@ -84,13 +84,13 @@ class Storage:
     async def ensure_channel(self, channel_name: str, addresses: list[str]) -> tuple[bool, str]:
         """Ensure a channel exists, creating it and subscribing addresses if it doesn't."""
         try:
-            if channel_name not in self.channels:
-                self.channels[channel_name] = []
-                self.logger.debug(f"Channel {channel_name} created")
+            if not utils.is_valid_channel_name(channel_name):
+                self.logger.warning(f"Invalid channel name: {channel_name}")
+                return False, f"Invalid channel name: {channel_name}"
             for address in addresses:
-                if not utils.is_valid_address(address):
-                    self.logger.warning(f"Invalid address for channel {channel_name}: {address}")
-                    return False, f"Invalid address: {address}"
+                if channel_name not in self.channels:
+                    self.channels[channel_name] = []
+                    self.logger.debug(f"Channel {channel_name} created")
                 if address not in self.channels[channel_name]:
                     self.channels[channel_name].append(address)
                     self.logger.debug(f"Subscribed address {address} to channel {channel_name}")

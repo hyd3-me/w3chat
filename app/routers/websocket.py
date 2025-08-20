@@ -32,49 +32,6 @@ async def process_ping(websocket: WebSocket, data: dict, sender_address: str):
     await websocket.send_json({"type": "pong"})
     logger.debug("Processed ping message")
 
-async def process_message(websocket: WebSocket, data: dict, sender_address: str):
-    """Process message type and forward to recipient."""
-    to_address = data.get("to")
-    data_content = data.get("data")
-    if not to_address or not data_content:
-        await websocket.send_json({"error": "Invalid message format"})
-        logger.warning(f"Invalid message format: {data}")
-        return
-    
-    # Check if recipient has any connections
-    recipient_connections = store.connections.get(to_address, [])
-    if not recipient_connections:
-        await websocket.send_json({"type": "error", "message": f"Recipient not connected: {to_address}"})
-        logger.warning("Recipient not connected")
-        return
-    
-    await send_ack(websocket)
-    
-    # Forward message to all recipient connections
-    await send_to_subscribers([to_address], {
-        "type": "message",
-        "from": sender_address,
-        "data": data_content,
-    })
-
-async def process_subscribe(websocket: WebSocket, data: dict, sender_address: str):
-    """Process subscribe message and add websocket to channel."""
-    channel_name = data.get("channel")
-    if not channel_name:
-        await websocket.send_json({"type": "error", "message": "Invalid channel name"})
-        logger.warning("Invalid channel name")
-        return
-    
-    # Add channel and subscribe websocket
-    await store.add_channel(channel_name)
-    success, msg = await store.subscribe_to_channel(channel_name, [sender_address])
-    if not success:
-        await websocket.send_json({"type": "error", "message": msg})
-        logger.warning(msg)
-        return
-    
-    await send_ack(websocket)
-
 async def process_channel(websocket: WebSocket, data: dict, sender_address: str):
     """Process channel message type and forward to all channel subscribers."""
     channel_name = data.get("channel")
@@ -227,8 +184,6 @@ async def process_channel_reject(websocket: WebSocket, data: dict, sender_addres
 
 process_map = {
     "ping": process_ping,
-    "message": process_message,
-    "subscribe": process_subscribe,
     "channel": process_channel,
     "channel_request": process_channel_request,
     "channel_approve": process_channel_approve,

@@ -9,3 +9,13 @@ def test_generate_channel_name():
     # Test reverse order
     channel_name_reverse = utils.generate_channel_name(address_2, address_1)
     assert channel_name_reverse == channel_name
+
+def test_generate_jwt():
+    """Test JWT token generation and decoding."""
+    # Valid address
+    valid_address = "0x1234567890abcdef1234567890abcdef12345678"
+    
+    # Test case 1: Generate and decode valid token
+    success, token = utils.generate_jwt(valid_address)
+    assert success, f"Failed to generate token: {token}"
+    assert isinstance(token, str), "Token should be a string"

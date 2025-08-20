@@ -348,3 +348,18 @@ async def test_websocket_subscribe_invalid_address(channel_name, store, client):
         ws_invalid.send_json({"type": "subscribe", "channel": channel_name})
         response = ws_invalid.receive_json()
         assert response == {"type": "error", "message": f"Invalid address: {invalid_address}"}
+
+@pytest.mark.asyncio
+async def test_websocket_channel_name_validation(websocket_1, user_1, user_2, channel_name, store, client):
+    """Test validation of channel name format in channel creation, subscription, and messaging."""
+    # Clean up channel and channel request state
+    success, msg = await store.delete_channel(channel_name)
+    assert success, f"Failed to clean up channel: {msg}"
+    success, msg = await store.delete_channel_request(channel_name)
+    assert success, f"Failed to clean up channel request: {msg}"
+
+    # Test case 1: Try to create channel with invalid to_address
+    invalid_address = "0xInvalidAddress"
+    websocket_1.send_json({"type": "channel_request", "to": invalid_address})
+    ws1_response = websocket_1.receive_json()
+    assert ws1_response == {"type": "error", "message": "Invalid Ethereum address"}

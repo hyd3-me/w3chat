@@ -114,6 +114,11 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
         logger.warning("Invalid recipient address")
         return
     
+    if not (utils.is_valid_address(sender_address) and utils.is_valid_address(to_address)):
+        await websocket.send_json({"type": "error", "message": "Invalid Ethereum address"})
+        logger.warning(f"Invalid Ethereum address: sender={sender_address}, to={to_address}")
+        return
+    
     # Check if trying to create channel with self
     if sender_address == to_address:
         await websocket.send_json({"type": "error", "message": "Cannot create channel with self"})

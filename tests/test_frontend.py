@@ -31,3 +31,9 @@ def test_index_page_loads_app_js(client):
     """Test that the main page includes app.js."""
     response = client.get("/")
     assert 'src="/static/js/app.js"' in response.text, "Expected app.js to be included in response"
+
+def test_app_js_accessible(client):
+    """Test that app.js is accessible at /static/js/app.js."""
+    response = client.get("/static/js/app.js")
+    assert response.status_code == 200, f"Expected status code 200, got {response.status_code}"
+    assert "truncateAddress" in response.text, "Expected app.js to contain truncateAddress function"

@@ -3,6 +3,7 @@ const placeholder = document.getElementById("placeholder");
 const channelsList = document.getElementById("channels-list");
 const chatContent = document.getElementById("chat-content");
 const notifications = document.getElementById("notifications");
+const requestChannelBtn = document.getElementById("request-channel-btn");
 let isAuthenticated = false;
 let userAddress = null;
 let activeContent = "channels"; // Default to channels when authenticated
@@ -47,7 +48,7 @@ function connectWebSocket(token) {
     };
 
     ws.onmessage = (event) => {
-        handleWebSocketMessage(event);
+        handleWebSocket(event);
     };
 
     ws.onerror = (error) => {
@@ -60,14 +61,29 @@ function connectWebSocket(token) {
     };
 }
 
-function handleWebSocketMessage(event) {
+function handleWebSocket(event) {
     console.log("WebSocket message received:", event.data);
-    try {
-        const data = JSON.parse(event.data);
-        console.log("Message ignored: wrong type or channel", data);
-    } catch (error) {
-        console.log("Failed to parse WebSocket message:", error.message);
+}
+
+function channelRequest() {
+    const recipientAddress = document.getElementById("recipient-address").value;
+    if (!recipientAddress || !recipientAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+        console.log("Invalid recipient address");
+        return;
     }
+    if (recipientAddress.toLowerCase() === userAddress.toLowerCase()) {
+        console.log("Cannot create channel with self");
+        return;
+    }
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.log("WebSocket not connected");
+        return;
+    }
+    console.log("Sending channel request for:", recipientAddress);
+    ws.send(JSON.stringify({
+        type: "channel_request",
+        to: recipientAddress
+    }));
 }
 
 async function checkWalletConnection() {
@@ -109,7 +125,7 @@ async function connectWallet() {
 
         if (response.ok) {
             console.log("Authentication successful, JWT:", data.token);
-            localStorage.setItem("jwt", data.token);
+            localStorage.setItem("w3chat_user", JSON.stringify({ jwt: data.token, address: address }));
             isAuthenticated = true;
             userAddress = address;
             activeContent = "channels";
@@ -136,14 +152,51 @@ function disconnectWallet() {
     userAddress = null;
     activeContent = "channels";
     selectedChannel = null;
-    localStorage.removeItem("jwt");
+    localStorage.removeItem("w3chat_user");
     updateWalletUI();
     updateContentUI();
 }
 
+async function checkExistingConnection() {
+    if (!await checkWalletConnection()) {
+        return;
+    }
+    try {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts.length === 0) {
+            console.log("No connected accounts found");
+            localStorage.removeItem("w3chat_user");
+            return;
+        }
+        const userData = localStorage.getItem("w3chat_user");
+        if (!userData) {
+            console.log("No user data in localStorage");
+            return;
+        }
+        const w3chat_user = JSON.parse(userData);
+        if (accounts[0].toLowerCase() !== w3chat_user.address.toLowerCase()) {
+            console.log("Connected account does not match stored address");
+            localStorage.removeItem("w3chat_user");
+            return;
+        }
+        // Try to connect WebSocket
+        connectWebSocket(w3chat_user.jwt);
+        isAuthenticated = true;
+        userAddress = w3chat_user.address;
+        activeContent = "channels";
+        selectedChannel = null;
+    } catch (error) {
+        console.log("Error checking existing connection:", error.message);
+        localStorage.removeItem("w3chat_user");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    updateWalletUI();
-    updateContentUI();
+    checkExistingConnection().then(() => {
+        console.log("Existing connection checked");
+        updateWalletUI();
+        updateContentUI();
+    });
     authDiv.addEventListener("click", (e) => {
         if (e.target.id === "connect-wallet") {
             connectWallet();
@@ -151,4 +204,5 @@ document.addEventListener("DOMContentLoaded", () => {
             disconnectWallet();
         }
     });
+    requestChannelBtn.addEventListener("click", channelRequest);
 });

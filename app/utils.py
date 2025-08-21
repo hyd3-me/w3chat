@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 # Constants
 W3 = Web3()
-TOKEN_EXPIRE_MINUTES = 30
+TOKEN_EXPIRE_MINUTES = 300
 ALGORITHM = "HS256"
 SECRET_KEY = None  # Initialize to None, set below
 LOGGER_PREFIX = "w3chat"

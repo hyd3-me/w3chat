@@ -138,6 +138,10 @@ function handleInfo(data) {
     console.log("Info message:", data.message);
     if (data.message === "Channel created" && data.channel) {
         const channelsList = document.getElementById("channels");
+        if (!channelsList) {
+            console.log("Channels list not found");
+            return;
+        }
         // Remove "No channels available" if present
         if (channelsList.querySelector("li").textContent === "No channels available") {
             channelsList.innerHTML = "";
@@ -147,8 +151,13 @@ function handleInfo(data) {
         channelItem.className = "channel";
         channelItem.dataset.channelId = data.channel;
         channelItem.textContent = `Channel ${data.channel}`;
+        channelItem.addEventListener("click", () => {
+            selectedChannel = data.channel;
+            activeContent = "chat";
+            updateContentUI();
+        });
         channelsList.appendChild(channelItem);
-    } else if (data.message.startsWith("Channel request rejected by")) {
+    } else if (data.message === "Channel request rejected by") {
         console.log("Channel request rejected:", data.message);
     }
 }

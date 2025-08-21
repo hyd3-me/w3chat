@@ -47,7 +47,7 @@ function connectWebSocket(token) {
     };
 
     ws.onmessage = (event) => {
-        console.log("WebSocket message received:", event.data);
+        handleWebSocketMessage(event);
     };
 
     ws.onerror = (error) => {
@@ -58,6 +58,16 @@ function connectWebSocket(token) {
         console.log("WebSocket disconnected");
         ws = null;
     };
+}
+
+function handleWebSocketMessage(event) {
+    console.log("WebSocket message received:", event.data);
+    try {
+        const data = JSON.parse(event.data);
+        console.log("Message ignored: wrong type or channel", data);
+    } catch (error) {
+        console.log("Failed to parse WebSocket message:", error.message);
+    }
 }
 
 async function checkWalletConnection() {

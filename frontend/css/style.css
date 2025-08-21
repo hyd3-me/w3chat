@@ -3,3 +3,7 @@
     min-height: calc(100vh - 60px); /* Adjust based on header height */
     box-sizing: border-box;
 }
+
+#hidden-messages-container {
+    display: none;
+}

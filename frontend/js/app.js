@@ -4,6 +4,7 @@ const channelsList = document.getElementById("channels-list");
 const chatContent = document.getElementById("chat-content");
 const notifications = document.getElementById("notifications");
 const requestChannelBtn = document.getElementById("request-channel-btn");
+const hiddenContainer = document.getElementById("hidden-messages-container");
 let isAuthenticated = false;
 let userAddress = null;
 let activeContent = "channels"; // Default to channels when authenticated
@@ -138,12 +139,22 @@ function handleChannelRequest(data) {
     });
 }
 
+function hide_channel_messages() {
+    if (selectedChannel) {
+        const prevMessages = document.getElementById(`channel-messages-${selectedChannel}`);
+        if (prevMessages && hiddenContainer) {
+            hiddenContainer.appendChild(prevMessages);
+            console.log(`Moved channel-messages-${selectedChannel} to hidden container`);
+        }
+    }
+}
+
 function handleInfo(data) {
     console.log("Info message:", data.message);
     if (data.message === "Channel created" && data.channel) {
         const channelsList = document.getElementById("channels");
-        if (!channelsList) {
-            console.log("Channels list not found");
+        if (!channelsList || !hiddenContainer) {
+            console.log("Channels list, hidden container not found");
             return;
         }
         // Remove "No channels available" if present
@@ -156,11 +167,25 @@ function handleInfo(data) {
         channelItem.dataset.channelId = data.channel;
         channelItem.textContent = `Channel ${data.channel}`;
         channelItem.addEventListener("click", () => {
+            // Hide previous channel messages
+            hide_channel_messages();
+            // Set new selected channel
             selectedChannel = data.channel;
             activeContent = "chat";
+            // Move new channel messages to chat-messages
+            const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
+            const chatMessages = document.getElementById("chat-messages");
+            if (messagesDiv && chatMessages) {
+                chatMessages.appendChild(messagesDiv);
+                console.log(`Moved channel-messages-${data.channel} to chat-messages`);
+            }
             updateContentUI();
         });
         channelsList.appendChild(channelItem);
+        // Create channel-specific messages container
+        const messagesDiv = document.createElement("div");
+        messagesDiv.id = `channel-messages-${data.channel}`;
+        hiddenContainer.appendChild(messagesDiv);
     } else if (data.message === "Channel request rejected by") {
         console.log("Channel request rejected:", data.message);
     }
@@ -168,6 +193,15 @@ function handleInfo(data) {
 
 function handleMessage(data) {
     console.log(`Message in channel ${data.channel} from ${data.from}: ${data.data}`);
+    const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
+    if (!messagesDiv) {
+        console.log(`Messages container for channel ${data.channel} not found`);
+        return;
+    }
+    const messageDiv = document.createElement("div");
+    messageDiv.className = "message";
+    messageDiv.textContent = `From ${truncateAddress(data.from)}: ${data.data}`;
+    messagesDiv.appendChild(messageDiv);
 }
 
 function handleError(data) {

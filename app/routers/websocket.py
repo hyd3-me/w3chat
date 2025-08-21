@@ -14,7 +14,6 @@ async def send_to_subscribers(recipient_addresses: list[str], message: dict):
     """Send a message to all WebSocket connections of recipient addresses."""
     for address in recipient_addresses:
         recipient_connections = store.connections.get(address, [])
-        print(f"Sending message to {address} connections: {recipient_connections}")
         for ws in recipient_connections:
             try:
                 await ws.send_json(message)
@@ -97,9 +96,7 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
         return
     
     # Notify recipient if online
-    print(f"Checking recipient connections{store.connections}")
     recipient_connections = store.connections.get(to_address, [])
-    print(f"Recipient connections: {recipient_connections}")
     if recipient_connections:
         # Store channel request
         await store.add_channel_request(channel_name, sender_address)

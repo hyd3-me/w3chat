@@ -7,6 +7,7 @@ let isAuthenticated = false;
 let userAddress = null;
 let activeContent = "channels"; // Default to channels when authenticated
 let selectedChannel = null; // No channel selected initially
+let ws = null; // WebSocket connection
 
 function truncateAddress(address) {
     return `${address.slice(0, 5)}...${address.slice(-4)}`;
@@ -35,6 +36,28 @@ function updateContentUI() {
         chatContent.style.display = activeContent === "chat" && selectedChannel ? "block" : "none";
         notifications.style.display = activeContent === "notifications" ? "block" : "none";
     }
+}
+
+function connectWebSocket(token) {
+    console.log("Connecting to WebSocket...");
+    ws = new WebSocket(`ws://${window.location.host}/ws/chat?token=${token}`);
+
+    ws.onopen = () => {
+        console.log("WebSocket connected");
+    };
+
+    ws.onmessage = (event) => {
+        console.log("WebSocket message received:", event.data);
+    };
+
+    ws.onerror = (error) => {
+        console.log("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+        console.log("WebSocket disconnected");
+        ws = null;
+    };
 }
 
 async function checkWalletConnection() {
@@ -83,6 +106,7 @@ async function connectWallet() {
             selectedChannel = null; // No channel selected
             updateWalletUI();
             updateContentUI();
+            connectWebSocket(data.token);
         } else {
             console.log("Authentication failed:", data.detail);
             throw new Error(data.detail);
@@ -94,6 +118,10 @@ async function connectWallet() {
 
 function disconnectWallet() {
     console.log("Disconnecting wallet...");
+    if (ws) {
+        ws.close();
+        console.log("WebSocket closing...");
+    }
     isAuthenticated = false;
     userAddress = null;
     activeContent = "channels";

@@ -26,3 +26,8 @@ def test_index_page_has_placeholder(client):
     """Test that the main page contains placeholder for unauthenticated users."""
     response = client.get("/")
     assert "Please connect your wallet to start chatting" in response.text, "Expected placeholder text in response"
+
+def test_index_page_loads_app_js(client):
+    """Test that the main page includes app.js."""
+    response = client.get("/")
+    assert 'src="/static/js/app.js"' in response.text, "Expected app.js to be included in response"

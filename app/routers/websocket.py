@@ -85,11 +85,19 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
     # Generate channel name
     channel_name = utils.generate_channel_name(sender_address, to_address)
     
+    if not utils.is_channel_participant(channel_name, sender_address):
+        await websocket.send_json({"type": "error", "message": "Unauthorized channel approval"})
+        logger.warning(f"Unauthorized channel approval for {channel_name} by {sender_address}")
+        return
+    
     # Check if channel or request already exists
     if channel_name in store.channels:
-        await websocket.send_json({"type": "error", "message": "Channel already exists"})
-        logger.warning("Channel already exists")
-        return
+        # Subscribe if channel already exists
+        success, msg = await store.subscribe_to_channel(channel_name, [sender_address])
+        if not success:
+            await websocket.send_json({"type": "error", "message": msg})
+            logger.warning(msg)
+            return
     if channel_name in store.channel_requests:
         await websocket.send_json({"type": "error", "message": "Channel request already exists"})
         logger.warning("Channel request already exists")

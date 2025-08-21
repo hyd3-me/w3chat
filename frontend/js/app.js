@@ -27,22 +27,78 @@ function updateContentUI() {
     notifications.style.display = isAuthenticated && activeContent === "notifications" ? "block" : "none";
 }
 
+async function checkWalletConnection() {
+    if (typeof window.ethereum === "undefined") {
+        console.log("MetaMask is not installed. Please install it to continue.");
+        return false;
+    }
+    console.log("MetaMask detected! Ready to connect.");
+    return true;
+}
+
+async function connectWallet() {
+    console.log("Connecting to wallet...");
+    try {
+        if (!await checkWalletConnection()) {
+            throw new Error("MetaMask not installed");
+        }
+
+        // Request account access
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const address = accounts[0];
+        console.log(`Connected: ${address}`);
+
+        // Sign message
+        const message = "Sign to authenticate with w3chat";
+        const signature = await window.ethereum.request({
+            method: "personal_sign",
+            params: [message, address]
+        });
+        console.log("Signature obtained:", signature);
+
+        // Verify with server
+        const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ address, message, signature })
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("Authentication successful, JWT:", data.token);
+            localStorage.setItem("jwt", data.token);
+            isAuthenticated = true;
+            userAddress = address;
+            activeContent = "chat";
+            updateWalletUI();
+            updateContentUI();
+        } else {
+            console.log("Authentication failed:", data.detail);
+            throw new Error(data.detail);
+        }
+    } catch (error) {
+        console.log("Error:", error.message);
+    }
+}
+
+function disconnectWallet() {
+    console.log("Disconnecting wallet...");
+    isAuthenticated = false;
+    userAddress = null;
+    activeContent = "chat";
+    localStorage.removeItem("jwt");
+    updateWalletUI();
+    updateContentUI();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     updateWalletUI();
     updateContentUI();
     authDiv.addEventListener("click", (e) => {
         if (e.target.id === "connect-wallet") {
-            isAuthenticated = true;
-            userAddress = "0x1234567890abcdef1234567890abcdef12345678"; // Mock address
-            activeContent = "chat"; // Default to chat
-            updateWalletUI();
-            updateContentUI();
+            connectWallet();
         } else if (e.target.id === "disconnect-wallet") {
-            isAuthenticated = false;
-            userAddress = null;
-            activeContent = "chat"; // Reset to chat
-            updateWalletUI();
-            updateContentUI();
+            disconnectWallet();
         }
     });
 });

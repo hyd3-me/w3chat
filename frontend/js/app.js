@@ -63,6 +63,102 @@ function connectWebSocket(token) {
 
 function handleWebSocket(event) {
     console.log("WebSocket message received:", event.data);
+    try {
+        const data = JSON.parse(event.data);
+        console.log("Parsed WebSocket message:", data);
+        switch (data.type) {
+            case "ack":
+                handleAck(data);
+                break;
+            case "channel_request":
+                handleChannelRequest(data);
+                break;
+            case "info":
+                handleInfo(data);
+                break;
+            case "message":
+                handleMessage(data);
+                break;
+            case "error":
+                handleError(data);
+                break;
+            default:
+                console.log("Unknown message type:", data.type);
+        }
+    } catch (error) {
+        console.log("Failed to parse WebSocket message:", error.message);
+    }
+}
+
+function handleAck(data) {
+    console.log("Command acknowledged by server");
+}
+
+function sendChannelAction(message, channel, requestItem) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.log("WebSocket not connected");
+        return;
+    }
+    ws.send(JSON.stringify(message));
+    console.log(`Sent ${message.type} for channel ${channel}`);
+    requestItem.remove(); // Remove notification after action
+}
+
+function handleChannelRequest(data) {
+    console.log(`Channel request from ${data.from} for channel ${data.channel}`);
+    const notificationsList = document.getElementById("notifications-list");
+    if (!notificationsList) {
+        console.log("Notifications list not found");
+        return;
+    }
+    const requestItem = document.createElement("li");
+    requestItem.className = "channel-request";
+    requestItem.dataset.channelId = data.channel;
+    requestItem.innerHTML = `
+        <button class="reject">Reject</button>
+        Channel request from ${data.from}:
+        <button class="approve">Approve</button>
+    `;
+    notificationsList.appendChild(requestItem);
+
+    // Add single event listener for buttons
+    requestItem.addEventListener("click", (event) => {
+        const buttonClass = event.target.className;
+        if (buttonClass === "approve" || buttonClass === "reject") {
+            const message = {
+                type: buttonClass === "approve" ? "channel_approve" : "channel_reject",
+                channel: data.channel
+            };
+            sendChannelAction(message, data.channel, requestItem);
+        }
+    });
+}
+
+function handleInfo(data) {
+    console.log("Info message:", data.message);
+    if (data.message === "Channel created" && data.channel) {
+        const channelsList = document.getElementById("channels");
+        // Remove "No channels available" if present
+        if (channelsList.querySelector("li").textContent === "No channels available") {
+            channelsList.innerHTML = "";
+        }
+        // Add new channel
+        const channelItem = document.createElement("li");
+        channelItem.className = "channel";
+        channelItem.dataset.channelId = data.channel;
+        channelItem.textContent = `Channel ${data.channel}`;
+        channelsList.appendChild(channelItem);
+    } else if (data.message.startsWith("Channel request rejected by")) {
+        console.log("Channel request rejected:", data.message);
+    }
+}
+
+function handleMessage(data) {
+    console.log(`Message in channel ${data.channel} from ${data.from}: ${data.data}`);
+}
+
+function handleError(data) {
+    console.log("Error from server:", data.message);
 }
 
 function channelRequest() {

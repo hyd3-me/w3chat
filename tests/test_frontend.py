@@ -20,6 +20,7 @@ def test_index_page_has_connect_wallet_button(client):
     """Test that the main page contains 'Connect Wallet' button."""
     response = client.get("/")
     assert "Connect Wallet" in response.text, "Expected 'Connect Wallet' button in response"
+    assert "Disconnect Wallet" not in response.text, "Expected no 'Disconnect Wallet' button in response"
 
 def test_index_page_has_placeholder(client):
     """Test that the main page contains placeholder for unauthenticated users."""

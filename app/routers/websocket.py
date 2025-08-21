@@ -95,20 +95,23 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
         logger.warning("Channel request already exists")
         return
     
-    # Store channel request
-    await store.add_channel_request(channel_name, sender_address)
-    
-    # Send acknowledgment to sender
-    await send_ack(websocket)
-    
     # Notify recipient if online
     recipient_connections = store.connections.get(to_address, [])
     if recipient_connections:
+        # Store channel request
+        await store.add_channel_request(channel_name, sender_address)
+        
+        # Send acknowledgment to sender
+        await send_ack(websocket)
         await send_to_subscribers([to_address], {
             "type": "channel_request",
             "from": sender_address,
             "channel": channel_name
         })
+    else:
+        await websocket.send_json({"type": "error", "message": "user is unavailable"})
+        logger.warning("attempt to request channel with unavailable user")
+
 
 async def process_channel_approve(websocket: WebSocket, data: dict, sender_address: str):
     """Process channel approval and create the channel."""

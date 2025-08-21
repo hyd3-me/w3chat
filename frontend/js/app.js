@@ -17,8 +17,12 @@ function truncateAddress(address) {
 function updateWalletUI() {
     if (isAuthenticated) {
         authDiv.innerHTML = `
-            <span>Connected: ${truncateAddress(userAddress)}</span>
-            <button id="disconnect-wallet">Disconnect Wallet</button>
+        <div id="nav-menu">
+            <button id="nav-channels">Channels</button>
+            <button id="nav-notifications">Notifications</button>
+        </div>
+        <span>Connected: ${truncateAddress(userAddress)}</span>
+        <button id="disconnect-wallet">Disconnect Wallet</button>
         `;
     } else {
         authDiv.innerHTML = `<button id="connect-wallet">Connect Wallet</button>`;
@@ -171,7 +175,7 @@ function handleError(data) {
 }
 
 function channelRequest() {
-    const recipientAddress = document.getElementById("recipient-address").value;
+    const recipientAddress = document.getElementById("recipient-address").value.toLowerCase();
     if (!recipientAddress || !recipientAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
         console.log("Invalid recipient address");
         return;
@@ -307,6 +311,16 @@ document.addEventListener("DOMContentLoaded", () => {
             connectWallet();
         } else if (e.target.id === "disconnect-wallet") {
             disconnectWallet();
+        } else if (e.target.id === "nav-channels") {
+            activeContent = "channels";
+            selectedChannel = null;
+            updateContentUI();
+            console.log("Switched to Channels");
+        } else if (e.target.id === "nav-notifications") {
+            activeContent = "notifications";
+            selectedChannel = null;
+            updateContentUI();
+            console.log("Switched to Notifications");
         }
     });
     requestChannelBtn.addEventListener("click", channelRequest);

@@ -334,6 +334,39 @@ async function checkExistingConnection() {
     }
 }
 
+function sendMessage() {
+    const messageInput = document.getElementById("message-input");
+    if (!messageInput) {
+        console.log("Message input not found");
+        return;
+    }
+    const message = messageInput.value;
+    if (!message) {
+        console.log("Cannot send empty message");
+        return;
+    }
+    if (!isAuthenticated) {
+        console.log("User not authenticated");
+        return;
+    }
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        console.log("WebSocket not connected");
+        return;
+    }
+    if (!selectedChannel) {
+        console.log("No channel selected");
+        return;
+    }
+    const messageData = {
+        type: "channel",
+        channel: selectedChannel,
+        data: message
+    };
+    ws.send(JSON.stringify(messageData));
+    console.log(`Sent message to channel ${selectedChannel}: ${message}`);
+    messageInput.value = ""; // Clear input
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     checkExistingConnection().then(() => {
         console.log("Existing connection checked");
@@ -358,4 +391,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     requestChannelBtn.addEventListener("click", channelRequest);
+    const chatForm = document.getElementById("chat-form");
+    if (chatForm) {
+        chatForm.addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevent form submission from reloading page
+            sendMessage();
+        });
+    }
 });

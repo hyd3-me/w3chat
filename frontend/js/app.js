@@ -1,10 +1,12 @@
 const authDiv = document.getElementById("auth");
 const placeholder = document.getElementById("placeholder");
-const chat = document.getElementById("chat");
+const channelsList = document.getElementById("channels-list");
+const chatContent = document.getElementById("chat-content");
 const notifications = document.getElementById("notifications");
 let isAuthenticated = false;
 let userAddress = null;
-let activeContent = "chat"; // Default to chat when authenticated
+let activeContent = "channels"; // Default to channels when authenticated
+let selectedChannel = null; // No channel selected initially
 
 function truncateAddress(address) {
     return `${address.slice(0, 5)}...${address.slice(-4)}`;
@@ -22,9 +24,17 @@ function updateWalletUI() {
 }
 
 function updateContentUI() {
-    placeholder.style.display = isAuthenticated ? "none" : "block";
-    chat.style.display = isAuthenticated && activeContent === "chat" ? "block" : "none";
-    notifications.style.display = isAuthenticated && activeContent === "notifications" ? "block" : "none";
+    if (!isAuthenticated) {
+        placeholder.style.display = "block";
+        channelsList.style.display = "none";
+        chatContent.style.display = "none";
+        notifications.style.display = "none";
+    } else {
+        placeholder.style.display = "none";
+        channelsList.style.display = activeContent === "channels" ? "block" : "none";
+        chatContent.style.display = activeContent === "chat" && selectedChannel ? "block" : "none";
+        notifications.style.display = activeContent === "notifications" ? "block" : "none";
+    }
 }
 
 async function checkWalletConnection() {
@@ -69,7 +79,8 @@ async function connectWallet() {
             localStorage.setItem("jwt", data.token);
             isAuthenticated = true;
             userAddress = address;
-            activeContent = "chat";
+            activeContent = "channels";
+            selectedChannel = null; // No channel selected
             updateWalletUI();
             updateContentUI();
         } else {
@@ -85,7 +96,8 @@ function disconnectWallet() {
     console.log("Disconnecting wallet...");
     isAuthenticated = false;
     userAddress = null;
-    activeContent = "chat";
+    activeContent = "channels";
+    selectedChannel = null;
     localStorage.removeItem("jwt");
     updateWalletUI();
     updateContentUI();

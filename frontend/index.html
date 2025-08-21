@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>w3chat</title>
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 <body>
@@ -15,9 +16,18 @@
         </div>
     </header>
     <main>
-        <div id="placeholder">Please connect your wallet to start chatting</div>
-        <div id="chat" style="display: none;"></div>
-        <div id="notifications" style="display: none;"></div>
+        <div id="placeholder" class="content-block">Please connect your wallet to start chatting</div>
+        <div id="channels-list" class="content-block" style="display: none;">
+            <ul id="channels"><li>No channels available</li></ul>
+        </div>
+        <div id="chat-content" class="content-block" style="display: none;">
+            <div id="chat-messages"></div>
+            <div id="chat-input">
+                <input id="message-input" type="text" placeholder="Type a message...">
+                <button id="send-message">Send</button>
+            </div>
+        </div>
+        <div id="notifications" class="content-block" style="display: none;"></div>
     </main>
     <script src="/static/js/app.js"></script>
 </body>

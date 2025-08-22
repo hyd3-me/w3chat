@@ -45,25 +45,30 @@ function updateContentUI() {
 }
 
 function connectWebSocket(token) {
-    console.log("Connecting to WebSocket...");
-    ws = new WebSocket(`ws://${window.location.host}/ws/chat?token=${token}`);
+    return new Promise((resolve, reject) => {
+        console.log("Connecting to WebSocket...");
+        ws = new WebSocket(`ws://${window.location.host}/ws/chat?token=${token}`);
 
-    ws.onopen = () => {
-        console.log("WebSocket connected");
-    };
+        ws.onopen = () => {
+            console.log("WebSocket connected");
+            resolve();
+        };
 
-    ws.onmessage = (event) => {
-        handleWebSocket(event);
-    };
+        ws.onmessage = (event) => {
+            handleWebSocket(event);
+        };
 
-    ws.onerror = (error) => {
-        console.log("WebSocket error:", error);
-    };
+        ws.onerror = (error) => {
+            console.log("WebSocket error:", error);
+            reject(new Error("Failed to connect WebSocket"));
+        };
 
-    ws.onclose = () => {
-        console.log("WebSocket disconnected");
-        ws = null;
-    };
+        ws.onclose = () => {
+            console.log("WebSocket disconnected");
+            ws = null;
+            reject(new Error("WebSocket closed"));
+        };
+    });
 }
 
 function handleWebSocket(event) {
@@ -323,7 +328,7 @@ async function checkExistingConnection() {
             return;
         }
         // Try to connect WebSocket
-        connectWebSocket(w3chat_user.jwt);
+        await connectWebSocket(w3chat_user.jwt);
         isAuthenticated = true;
         userAddress = w3chat_user.address;
         activeContent = "channels";
@@ -331,6 +336,8 @@ async function checkExistingConnection() {
     } catch (error) {
         console.log("Error checking existing connection:", error.message);
         localStorage.removeItem("w3chat_user");
+        ws = null;
+        return;
     }
 }
 

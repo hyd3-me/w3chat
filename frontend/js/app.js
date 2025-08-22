@@ -32,15 +32,15 @@ function updateWalletUI() {
 
 function updateContentUI() {
     if (!isAuthenticated) {
-        placeholder.style.display = "block";
-        channelsList.style.display = "none";
-        chatContent.style.display = "none";
-        notifications.style.display = "none";
+        placeholder.classList.remove("hidden");
+        channelsList.classList.add("hidden");
+        chatContent.classList.add("hidden ");
+        notifications.classList.add("hidden");
     } else {
-        placeholder.style.display = "none";
-        channelsList.style.display = activeContent === "channels" ? "block" : "none";
-        chatContent.style.display = activeContent === "chat" && selectedChannel ? "block" : "none";
-        notifications.style.display = activeContent === "notifications" ? "block" : "none";
+        placeholder.classList.add("hidden");
+        channelsList.classList.toggle("hidden", activeContent !== "channels");
+        chatContent.classList.toggle("hidden", activeContent !== "chat" || !selectedChannel);
+        notifications.classList.toggle("hidden", activeContent !== "notifications");
     }
 }
 

@@ -16,7 +16,7 @@
     </header>
     <main>
         <div id="placeholder" class="content-block">Please connect your wallet to start chatting</div>
-        <div id="channels-list" class="content-block" style="display: none;">
+        <div id="channels-list" class="content-block hidden">
             <div id="request-channel">
                 <input id="recipient-address" type="text" placeholder="Enter recipient wallet address">
                 <button id="request-channel-btn">Request Chat</button>
@@ -25,7 +25,7 @@
                 <li>No channels available</li>
             </ul>
         </div>
-        <div id="chat-content" class="content-block" style="display: none;">
+        <div id="chat-content" class="content-block chat-content hidden">
             <div id="chat-messages"></div>
 
             <div id="chat-input">
@@ -36,10 +36,10 @@
 
             </div>
         </div>
-        <div id="notifications" class="content-block" style="display: none;">
+        <div id="notifications" class="content-block hidden">
             <ul id="notifications-list"></ul>
         </div>
-        <div id="hidden-messages-container"></div>
+        <div id="hidden-messages-container" class="hidden"></div>
     </main>
     <script src="/static/js/app.js"></script>
 </body>

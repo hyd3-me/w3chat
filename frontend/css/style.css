@@ -5,6 +5,7 @@ body {
     flex-direction: column;
     overflow: hidden;
 }
+
 header {
     padding: 10px;
     background-color: #f5f5f5;
@@ -16,7 +17,7 @@ main {
     overflow-y: auto;
 }
 
-#chat-content {
+.chat-content {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -34,6 +35,6 @@ main {
     bottom: 0;
 }
 
-#hidden-messages-container {
+.hidden {
     display: none;
 }

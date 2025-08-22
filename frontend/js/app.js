@@ -113,6 +113,18 @@ function handleAck(data) {
     console.log("Command acknowledged by server");
 }
 
+function createChannelRequestItem(data) {
+    const requestItem = document.createElement("li");
+    requestItem.className = "channel-request";
+    requestItem.dataset.channelId = data.channel;
+    requestItem.innerHTML = `
+        <button class="reject">Reject</button>
+        Channel request from ${data.from}:
+        <button class="approve">Approve</button>
+    `;
+    return requestItem;
+}
+
 function attachChannelActionListener(requestItem, channel) {
     requestItem.addEventListener("click", (event) => {
         const buttonClass = event.target.className;
@@ -154,14 +166,7 @@ function handleChannelRequest(data) {
     sessionStorage.setItem("w3chat_notifications", JSON.stringify(notifications));
     console.log(`Saved notification for channel ${data.channel} to sessionStorage`);
     // Add notification to UI
-    const requestItem = document.createElement("li");
-    requestItem.className = "channel-request";
-    requestItem.dataset.channelId = data.channel;
-    requestItem.innerHTML = `
-        <button class="reject">Reject</button>
-        Channel request from ${data.from}:
-        <button class="approve">Approve</button>
-    `;
+    const requestItem = createChannelRequestItem(data);
     notificationsList.appendChild(requestItem);
     attachChannelActionListener(requestItem, data.channel);
 }
@@ -174,14 +179,7 @@ function restoreNotifications() {
     }
     const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
     Object.values(notifications).forEach(data => {
-        const requestItem = document.createElement("li");
-        requestItem.className = "channel-request";
-        requestItem.dataset.channelId = data.channel;
-        requestItem.innerHTML = `
-            <button class="reject">Reject</button>
-            Channel request from ${truncateAddress(data.from)}:
-            <button class="approve">Approve</button>
-        `;
+        const requestItem = createChannelRequestItem(data);
         notificationsList.appendChild(requestItem);
         attachChannelActionListener(requestItem, data.channel);
     });

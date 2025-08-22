@@ -113,6 +113,19 @@ function handleAck(data) {
     console.log("Command acknowledged by server");
 }
 
+function attachChannelActionListener(requestItem, channel) {
+    requestItem.addEventListener("click", (event) => {
+        const buttonClass = event.target.className;
+        if (buttonClass === "approve" || buttonClass === "reject") {
+            const message = {
+                type: buttonClass === "approve" ? "channel_approve" : "channel_reject",
+                channel: channel
+            };
+            sendChannelAction(message, channel, requestItem);
+        }
+    });
+}
+
 function sendChannelAction(message, channel, requestItem) {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
         console.log("WebSocket not connected");
@@ -150,18 +163,29 @@ function handleChannelRequest(data) {
         <button class="approve">Approve</button>
     `;
     notificationsList.appendChild(requestItem);
+    attachChannelActionListener(requestItem, data.channel);
+}
 
-    // Add single event listener for buttons
-    requestItem.addEventListener("click", (event) => {
-        const buttonClass = event.target.className;
-        if (buttonClass === "approve" || buttonClass === "reject") {
-            const message = {
-                type: buttonClass === "approve" ? "channel_approve" : "channel_reject",
-                channel: data.channel
-            };
-            sendChannelAction(message, data.channel, requestItem);
-        }
+function restoreNotifications() {
+    const notificationsList = document.getElementById("notifications-list");
+    if (!notificationsList) {
+        console.log("Notifications list not found");
+        return;
+    }
+    const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    Object.values(notifications).forEach(data => {
+        const requestItem = document.createElement("li");
+        requestItem.className = "channel-request";
+        requestItem.dataset.channelId = data.channel;
+        requestItem.innerHTML = `
+            <button class="reject">Reject</button>
+            Channel request from ${truncateAddress(data.from)}:
+            <button class="approve">Approve</button>
+        `;
+        notificationsList.appendChild(requestItem);
+        attachChannelActionListener(requestItem, data.channel);
     });
+    console.log(`Restored ${Object.keys(notifications).length} notifications from sessionStorage`);
 }
 
 function hide_channel_messages() {

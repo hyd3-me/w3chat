@@ -50,7 +50,7 @@ function connectWebSocket(token) {
         ws = new WebSocket(`ws://${window.location.host}/ws/chat?token=${token}`);
 
         const timeout = setTimeout(() => {
-            console.log("WebSocket connection timed out after 5 seconds");
+            console.log("WebSocket connection timed out after 3 seconds");
             ws.close(); // Force close WebSocket
             reject(new Error("WebSocket connection timed out"));
         }, 3000);
@@ -121,6 +121,11 @@ function sendChannelAction(message, channel, requestItem) {
     ws.send(JSON.stringify(message));
     console.log(`Sent ${message.type} for channel ${channel}`);
     requestItem.remove(); // Remove notification after action
+    // Remove notification from sessionStorage
+    const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    delete notifications[channel];
+    sessionStorage.setItem("w3chat_notifications", JSON.stringify(notifications));
+    console.log(`Removed notification for channel ${channel} from sessionStorage`);
 }
 
 function handleChannelRequest(data) {
@@ -130,6 +135,12 @@ function handleChannelRequest(data) {
         console.log("Notifications list not found");
         return;
     }
+    // Save notification to sessionStorage
+    const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    notifications[data.channel] = data;
+    sessionStorage.setItem("w3chat_notifications", JSON.stringify(notifications));
+    console.log(`Saved notification for channel ${data.channel} to sessionStorage`);
+    // Add notification to UI
     const requestItem = document.createElement("li");
     requestItem.className = "channel-request";
     requestItem.dataset.channelId = data.channel;

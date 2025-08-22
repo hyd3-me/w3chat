@@ -21,16 +21,20 @@
                 <input id="recipient-address" type="text" placeholder="Enter recipient wallet address">
                 <button id="request-channel-btn">Request Chat</button>
             </div>
-            <ul id="channels"><li>No channels available</li></ul>
+            <ul id="channels">
+                <li>No channels available</li>
+            </ul>
         </div>
         <div id="chat-content" class="content-block" style="display: none;">
             <div id="chat-messages"></div>
-            <form id="chat-form">
-                <div id="chat-input">
+
+            <div id="chat-input">
+                <form id="chat-form">
                     <input id="message-input" type="text" placeholder="Type a message...">
                     <button id="send-message" type="submit">Send</button>
-                </div>
-            </form>
+                </form>
+
+            </div>
         </div>
         <div id="notifications" class="content-block" style="display: none;">
             <ul id="notifications-list"></ul>

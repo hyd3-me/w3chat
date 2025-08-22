@@ -1,3 +1,39 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+header {
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #ccc;
+}
+
+main {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#chat-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+    align-content: end;
+}
+
+#chat-input {
+    position: sticky;
+    bottom: 0;
+}
+
 #hidden-messages-container {
     display: none;
 }

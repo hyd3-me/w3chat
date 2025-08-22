@@ -238,6 +238,13 @@ function handleInfo(data) {
     }
 }
 
+function scrollChatToBottom() {
+    const chatMessages = document.getElementById("chat-messages");
+    if (chatMessages) {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: "smooth" });
+    }
+}
+
 function handleMessage(data) {
     console.log(`Message in channel ${data.channel} from ${data.from}: ${data.data}`);
     const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
@@ -249,6 +256,7 @@ function handleMessage(data) {
     messageDiv.className = "message";
     messageDiv.textContent = `From ${truncateAddress(data.from)}: ${data.data}`;
     messagesDiv.appendChild(messageDiv);
+    scrollChatToBottom();
 }
 
 function handleError(data) {
@@ -256,7 +264,8 @@ function handleError(data) {
 }
 
 function channelRequest() {
-    const recipientAddress = document.getElementById("recipient-address").value.toLowerCase();
+    const recipientAddressElement = document.getElementById("recipient-address");
+    const recipientAddress = recipientAddressElement.value.toLowerCase();
     if (!recipientAddress || !recipientAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
         console.log("Invalid recipient address");
         return;
@@ -274,7 +283,7 @@ function channelRequest() {
         type: "channel_request",
         to: recipientAddress
     }));
-    recipientAddress = ""; // Clear input after sending request
+    recipientAddressElement.value = ""; // Clear input after sending request
 }
 
 async function checkWalletConnection() {

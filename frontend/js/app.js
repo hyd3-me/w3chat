@@ -274,6 +274,7 @@ function channelRequest() {
         type: "channel_request",
         to: recipientAddress
     }));
+    recipientAddress = ""; // Clear input after sending request
 }
 
 async function checkWalletConnection() {

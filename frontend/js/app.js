@@ -204,6 +204,11 @@ function handleInfo(data) {
             console.log("Channels list, hidden container not found");
             return;
         }
+        // Check if channel already exists
+        if (channelsList.querySelector(`li[data-channel-id="${data.channel}"]`)) {
+            console.log(`Channel ${data.channel} already exists, skipping addition`);
+            return;
+        }
         // Remove "No channels available" if present
         if (channelsList.querySelector("li").textContent === "No channels available") {
             channelsList.innerHTML = "";

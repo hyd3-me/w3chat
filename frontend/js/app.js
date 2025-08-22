@@ -49,8 +49,15 @@ function connectWebSocket(token) {
         console.log("Connecting to WebSocket...");
         ws = new WebSocket(`ws://${window.location.host}/ws/chat?token=${token}`);
 
+        const timeout = setTimeout(() => {
+            console.log("WebSocket connection timed out after 5 seconds");
+            ws.close(); // Force close WebSocket
+            reject(new Error("WebSocket connection timed out"));
+        }, 3000);
+
         ws.onopen = () => {
             console.log("WebSocket connected");
+            clearTimeout(timeout); // Clear timeout on success
             resolve();
         };
 
@@ -60,12 +67,14 @@ function connectWebSocket(token) {
 
         ws.onerror = (error) => {
             console.log("WebSocket error:", error);
+            clearTimeout(timeout); // Clear timeout on error
             reject(new Error("Failed to connect WebSocket"));
         };
 
         ws.onclose = () => {
             console.log("WebSocket disconnected");
             ws = null;
+            clearTimeout(timeout); // Clear timeout on close
             reject(new Error("WebSocket closed"));
         };
     });

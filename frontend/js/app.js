@@ -23,8 +23,10 @@ function updateWalletUI() {
             <button id="nav-notifications">Notifications</button>
         `;
         authDiv.innerHTML = `
-            <span>Connected: ${truncateAddress(userAddress)}</span>
-            <button id="disconnect-wallet">Disconnect Wallet</button>
+            <button id="profile">${truncateAddress(userAddress)}</button>
+            <div class="dropdown">
+                <button id="disconnect-wallet">logout</button>
+            </div>
         `;
     } else {
         navMenu.innerHTML = "";

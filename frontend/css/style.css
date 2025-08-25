@@ -27,10 +27,36 @@ nav#nav-menu {
 }
 
 #auth {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
 }
+
+#auth .dropdown {
+    display: none;
+    position: absolute;
+    width: 100%;
+    top: 100%;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    z-index: 10;
+}
+
+#auth:hover .dropdown {
+    display: block;
+}
+
+#auth .dropdown button {
+    display: block;
+    padding: 5px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+}
+
 main {
     flex-grow: 1;
     overflow-y: auto;

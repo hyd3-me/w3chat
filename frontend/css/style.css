@@ -44,11 +44,13 @@ nav#nav-menu .icon-button svg {
     pointer-events: none;
 }
 
+#channels .channel.has-new-messages,
 nav#nav-menu .icon-button.has-new-messages,
 nav#nav-menu .icon-button.has-notifications {
     position: relative;
 }
 
+#channels .channel.has-new-messages::after,
 nav#nav-menu .icon-button.has-new-messages::after,
 nav#nav-menu .icon-button.has-notifications::after {
     content: "";

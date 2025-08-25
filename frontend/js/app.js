@@ -242,7 +242,7 @@ function handleInfo(data) {
         }
         // Add new channel
         const channelItem = document.createElement("li");
-        channelItem.className = "channel";
+        channelItem.className = `channel`;
         channelItem.dataset.channelId = data.channel;
         channelItem.textContent = `Channel ${data.channel}`;
         channelItem.addEventListener("click", () => {
@@ -263,6 +263,11 @@ function handleInfo(data) {
             delete newMessages[data.channel];
             sessionStorage.setItem("w3chat_new_messages", JSON.stringify(newMessages));
             console.log(`Cleared new messages for channel ${data.channel} from sessionStorage`);
+            // Remove has-new-messages class from the selected channel
+            const channelItem = channelsList.querySelector(`li[data-channel-id="${data.channel}"]`);
+            if (channelItem) {
+                channelItem.classList.remove("has-new-messages");
+            }
             updateWalletUI();
             updateContentUI();
         });
@@ -302,6 +307,14 @@ function handleMessage(data) {
         newMessages[data.channel].push({ from: data.from, data: data.data });
         sessionStorage.setItem("w3chat_new_messages", JSON.stringify(newMessages));
         console.log(`Saved new message for channel ${data.channel} in sessionStorage`);
+        // Add has-new-messages class to the channel in the list
+        const channelsList = document.getElementById("channels");
+        if (channelsList) {
+            const channelItem = channelsList.querySelector(`li[data-channel-id="${data.channel}"]`);
+            if (channelItem) {
+                channelItem.classList.add("has-new-messages");
+            }
+        }
         updateWalletUI();
     }
 }

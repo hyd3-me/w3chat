@@ -18,11 +18,13 @@ function truncateAddress(address) {
 
 function updateWalletUI() {
     const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    const newMessages = JSON.parse(sessionStorage.getItem("w3chat_new_messages") || "{}");
     const hasNotifications = Object.keys(notifications).length > 0 ? " has-notifications" : "";
+    const hasNewMessages = Object.keys(newMessages).length > 0 ? " has-new-messages" : "";
     console.log(`${hasNotifications}`);
     if (isAuthenticated) {
         navMenu.innerHTML = `
-            <button id="nav-channels" class="icon-button">
+            <button id="nav-channels" class="icon-button${hasNewMessages}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                     <path d="M12 8a2 2 0 0 1-2 2H5l-4 4V9a2 2 0 0 1 2-2h7z"></path>
@@ -256,6 +258,12 @@ function handleInfo(data) {
                 chatMessages.appendChild(messagesDiv);
                 console.log(`Moved channel-messages-${data.channel} to chat-messages`);
             }
+            // Clear new messages for this channel
+            const newMessages = JSON.parse(sessionStorage.getItem("w3chat_new_messages") || "{}");
+            delete newMessages[data.channel];
+            sessionStorage.setItem("w3chat_new_messages", JSON.stringify(newMessages));
+            console.log(`Cleared new messages for channel ${data.channel} from sessionStorage`);
+            updateWalletUI();
             updateContentUI();
         });
         channelsList.appendChild(channelItem);
@@ -287,6 +295,15 @@ function handleMessage(data) {
     messageDiv.textContent = `${data.data}`;
     messagesDiv.appendChild(messageDiv);
     scrollChatToBottom();
+    // Save new message if not in the active channel
+    if (data.channel !== selectedChannel || activeContent !== "chat") {
+        const newMessages = JSON.parse(sessionStorage.getItem("w3chat_new_messages") || "{}");
+        newMessages[data.channel] = newMessages[data.channel] || [];
+        newMessages[data.channel].push({ from: data.from, data: data.data });
+        sessionStorage.setItem("w3chat_new_messages", JSON.stringify(newMessages));
+        console.log(`Saved new message for channel ${data.channel} in sessionStorage`);
+        updateWalletUI();
+    }
 }
 
 function handleError(data) {

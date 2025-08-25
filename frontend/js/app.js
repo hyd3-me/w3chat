@@ -41,6 +41,12 @@ function updateContentUI() {
         channelsList.classList.toggle("hidden", activeContent !== "channels");
         chatContent.classList.toggle("hidden", activeContent !== "chat" || !selectedChannel);
         notifications.classList.toggle("hidden", activeContent !== "notifications");
+        if (activeContent === "chat" && selectedChannel) {
+            const messageInput = document.getElementById("message-input");
+            if (messageInput) {
+                messageInput.focus();
+            }
+        }
     }
 }
 

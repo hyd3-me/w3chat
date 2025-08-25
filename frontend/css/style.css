@@ -23,7 +23,42 @@ header {
 
 nav#nav-menu {
     display: flex;
+    align-items: center;
     gap: 10px;
+}
+
+nav#nav-menu .icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 5px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+nav#nav-menu .icon-button svg {
+    width: 24px;
+    height: 24px;
+    stroke: #333;
+    pointer-events: none;
+}
+
+nav#nav-menu .icon-button.has-notifications {
+    position: relative;
+}
+
+nav#nav-menu .icon-button.has-notifications::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
 }
 
 #auth {

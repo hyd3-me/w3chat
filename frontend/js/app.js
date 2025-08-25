@@ -17,10 +17,18 @@ function truncateAddress(address) {
 }
 
 function updateWalletUI() {
+    const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    const hasNotifications = Object.keys(notifications).length > 0 ? " has-notifications" : "";
+    console.log(`${hasNotifications}`);
     if (isAuthenticated) {
         navMenu.innerHTML = `
             <button id="nav-channels">Channels</button>
-            <button id="nav-notifications">Notifications</button>
+            <button id="nav-notifications" class="icon-button${hasNotifications}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            </button>
         `;
         authDiv.innerHTML = `
             <button id="profile">${truncateAddress(userAddress)}</button>
@@ -161,6 +169,7 @@ function sendChannelAction(message, channel, requestItem) {
     delete notifications[channel];
     sessionStorage.setItem("w3chat_notifications", JSON.stringify(notifications));
     console.log(`Removed notification for channel ${channel} from sessionStorage`);
+    updateWalletUI(); // Update UI to reflect notification status
 }
 
 function handleChannelRequest(data) {
@@ -179,6 +188,7 @@ function handleChannelRequest(data) {
     const requestItem = createChannelRequestItem(data);
     notificationsList.appendChild(requestItem);
     attachChannelActionListener(requestItem, data.channel);
+    updateWalletUI(); // Update UI to show notification indicator
 }
 
 function restoreNotifications() {
@@ -447,21 +457,26 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWalletUI();
         updateContentUI();
     });
-    authDiv.addEventListener("click", (e) => {
+    const header = document.querySelector("header");
+    header.addEventListener("click", (e) => {
         if (e.target.id === "connect-wallet") {
             connectWallet();
         } else if (e.target.id === "disconnect-wallet") {
             disconnectWallet();
         } else if (e.target.id === "nav-channels") {
-            activeContent = "channels";
-            selectedChannel = null;
-            updateContentUI();
-            console.log("Switched to Channels");
+            if (activeContent !== "channels") {
+                activeContent = "channels";
+                selectedChannel = null;
+                updateContentUI();
+                console.log("Switched to Channels");
+            }
         } else if (e.target.id === "nav-notifications") {
-            activeContent = "notifications";
-            selectedChannel = null;
-            updateContentUI();
-            console.log("Switched to Notifications");
+            if (activeContent !== "notifications") {
+                activeContent = "notifications";
+                selectedChannel = null;
+                updateContentUI();
+                console.log("Switched to Notifications");
+            }
         }
     });
     requestChannelBtn.addEventListener("click", channelRequest);

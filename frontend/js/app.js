@@ -22,7 +22,12 @@ function updateWalletUI() {
     console.log(`${hasNotifications}`);
     if (isAuthenticated) {
         navMenu.innerHTML = `
-            <button id="nav-channels">Channels</button>
+            <button id="nav-channels" class="icon-button">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    <path d="M12 8a2 2 0 0 1-2 2H5l-4 4V9a2 2 0 0 1 2-2h7z"></path>
+                </svg>
+            </button>
             <button id="nav-notifications" class="icon-button${hasNotifications}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>

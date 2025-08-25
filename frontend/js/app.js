@@ -34,7 +34,7 @@ function updateContentUI() {
     if (!isAuthenticated) {
         placeholder.classList.remove("hidden");
         channelsList.classList.add("hidden");
-        chatContent.classList.add("hidden ");
+        chatContent.classList.add("hidden");
         notifications.classList.add("hidden");
     } else {
         placeholder.classList.add("hidden");

@@ -35,6 +35,15 @@ main {
     bottom: 0;
 }
 
+.message {
+    max-width: 80%;
+    width: fit-content;
+}
+
+.message.own-message {
+    margin-left: auto;
+}
+
 .hidden {
     display: none;
 }

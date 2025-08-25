@@ -264,7 +264,7 @@ function handleMessage(data) {
         return;
     }
     const messageDiv = document.createElement("div");
-    messageDiv.className = "message";
+    messageDiv.className = `message${data.from.toLowerCase() === userAddress.toLowerCase() ? " own-message" : ""}`;
     messageDiv.textContent = `From ${truncateAddress(data.from)}: ${data.data}`;
     messagesDiv.appendChild(messageDiv);
     scrollChatToBottom();

@@ -1,4 +1,5 @@
 const authDiv = document.getElementById("auth");
+const navMenu = document.getElementById("nav-menu");
 const placeholder = document.getElementById("placeholder");
 const channelsList = document.getElementById("channels-list");
 const chatContent = document.getElementById("chat-content");
@@ -17,15 +18,16 @@ function truncateAddress(address) {
 
 function updateWalletUI() {
     if (isAuthenticated) {
-        authDiv.innerHTML = `
-        <div id="nav-menu">
+        navMenu.innerHTML = `
             <button id="nav-channels">Channels</button>
             <button id="nav-notifications">Notifications</button>
-        </div>
-        <span>Connected: ${truncateAddress(userAddress)}</span>
-        <button id="disconnect-wallet">Disconnect Wallet</button>
+        `;
+        authDiv.innerHTML = `
+            <span>Connected: ${truncateAddress(userAddress)}</span>
+            <button id="disconnect-wallet">Disconnect Wallet</button>
         `;
     } else {
+        navMenu.innerHTML = "";
         authDiv.innerHTML = `<button id="connect-wallet">Connect Wallet</button>`;
     }
 }

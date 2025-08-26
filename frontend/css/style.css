@@ -185,17 +185,20 @@ ul#channels {
 }
 
 #notifications-list .channel-request {
-    display: flex;
     flex-direction: column;
-    padding: 12px 10px;
 }
 #notifications-list .channel-request .request-text {
     margin-bottom: 8px;
+    width: 100%;
 }
+
 #notifications-list .channel-request .request-actions {
     display: flex;
-    gap: 10px;
+    gap: 24px;
+    width: 100%;
+    max-width: 480px;
 }
+
 #notifications-list .channel-request .reject,
 #notifications-list .channel-request .approve {
     flex: 1;
@@ -204,8 +207,8 @@ ul#channels {
     border-radius: 4px;
     cursor: pointer;
     text-align: center;
-    font-size: 16px;
 }
+
 #notifications-list .channel-request .reject {
     background-color: #ff0000;
     color: #fff;
@@ -219,6 +222,7 @@ ul#channels {
     #notifications-list .channel-request .request-actions {
         flex-direction: column;
         gap: 8px;
+        width: 100%;
     }
 }
 

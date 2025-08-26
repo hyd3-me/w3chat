@@ -36,6 +36,15 @@ async def process_channel(websocket: WebSocket, data: dict, sender_address: str)
     """Process channel message type and forward to all channel subscribers."""
     channel_name = data.get("channel")
     data_content = data.get("data")
+
+    if not isinstance(data_content, str):
+        await websocket.send_json({"type": "error", "message": "Message must be a string"})
+        logger.warning("Message is not a string")
+        return
+    if len(data_content) > 12000:
+        await websocket.send_json({"type": "error", "message": "Message too long (max 12000 characters)"})
+        logger.warning("Message too long")
+        return
     
     if not channel_name or not data_content:
         await websocket.send_json({"type": "error", "message": "Invalid channel message format"})

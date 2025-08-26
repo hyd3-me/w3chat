@@ -116,8 +116,10 @@ nav#nav-menu .icon-button.has-notifications::after {
 }
 
 main {
+    margin: 0 auto;
     flex-grow: 1;
     overflow-y: auto;
+    max-width: 780px;
 }
 
 .chat-content {

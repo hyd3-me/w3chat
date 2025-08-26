@@ -128,7 +128,8 @@ main {
 
 #chat-messages {
     flex-grow: 1;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     min-height: 0;
     align-content: end;
     padding: 10px;

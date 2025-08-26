@@ -143,10 +143,13 @@ function createChannelRequestItem(data) {
     requestItem.className = "channel-request";
     requestItem.dataset.channelId = data.channel;
     requestItem.innerHTML = `
-        <button class="reject">Reject</button>
-        Channel request from ${data.from}:
-        <button class="approve">Approve</button>
+        <div class="request-text">Channel request from ${data.from}</div>
+        <div class="request-actions">
+            <button class="reject">Reject</button>
+            <button class="approve">Approve</button>
+        </div>
     `;
+    requestItem.title = `Channel request from ${data.from}`;
     return requestItem;
 }
 

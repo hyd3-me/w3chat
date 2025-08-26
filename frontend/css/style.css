@@ -156,11 +156,14 @@ main {
     background-color: #e0e0e0;
 }
 
+ul#notifications-list,
 ul#channels {
     padding: 0;
     overflow-x: hidden;
     overflow-y: auto;
 }
+
+#notifications-list li,
 #channels li {
     display: flex;
     align-items: center;
@@ -169,6 +172,7 @@ ul#channels {
     list-style: none;
 }
 
+#notifications-list .notification.has-new-notifications::before,
 #channels .channel.has-new-messages::before {
     content: "";
     display: inline-block;
@@ -178,6 +182,44 @@ ul#channels {
     border-radius: 50%;
     margin-right: 8px;
     vertical-align: middle;
+}
+
+#notifications-list .channel-request {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 10px;
+}
+#notifications-list .channel-request .request-text {
+    margin-bottom: 8px;
+}
+#notifications-list .channel-request .request-actions {
+    display: flex;
+    gap: 10px;
+}
+#notifications-list .channel-request .reject,
+#notifications-list .channel-request .approve {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+}
+#notifications-list .channel-request .reject {
+    background-color: #ff0000;
+    color: #fff;
+}
+#notifications-list .channel-request .approve {
+    background-color: #28a745;
+    color: #fff;
+}
+
+@media (max-width: 280px) {
+    #notifications-list .channel-request .request-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
 }
 
 .hidden {

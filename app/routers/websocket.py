@@ -98,6 +98,9 @@ async def process_channel_request(websocket: WebSocket, data: dict, sender_addre
             await websocket.send_json({"type": "error", "message": msg})
             logger.warning(msg)
             return
+        await websocket.send_json({"type": "error", "message": "Channel already exists"})
+        logger.warning("Channel already exists")
+        return
     if channel_name in store.channel_requests:
         await websocket.send_json({"type": "error", "message": "Channel request already exists"})
         logger.warning("Channel request already exists")

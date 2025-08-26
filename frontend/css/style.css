@@ -160,14 +160,14 @@ main {
 
 ul#channels {
     padding: 0;
-    overflow-wrap: break-word;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 #channels li {
-    display: inline-block;
-    padding: 6px 10px;
-    cursor: pointer;
+    display: flex;
     align-items: center;
+    padding: 10px;
+    cursor: pointer;
     list-style: none;
 }
 
@@ -176,7 +176,7 @@ ul#channels {
     display: inline-block;
     width: 8px;
     height: 8px;
-    background-color: red;
+    background-color: #007bff;
     border-radius: 50%;
     margin-right: 8px;
     vertical-align: middle;

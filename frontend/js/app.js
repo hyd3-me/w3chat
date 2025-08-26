@@ -244,7 +244,11 @@ function handleInfo(data) {
         const channelItem = document.createElement("li");
         channelItem.className = `channel`;
         channelItem.dataset.channelId = data.channel;
-        channelItem.textContent = `Channel ${data.channel}`;
+        // Parse channel ID to extract other participant's address
+        const [addr1, addr2] = data.channel.split(":");
+        const otherAddress = addr1.toLowerCase() === userAddress.toLowerCase() ? addr2 : addr1;
+        channelItem.textContent = shortenAddress(otherAddress);
+        channelItem.title = otherAddress; // Full address in tooltip
         channelItem.addEventListener("click", () => {
             // Hide previous channel messages
             hide_channel_messages();

@@ -141,6 +141,12 @@ main {
     background-color: #f9f9f9;
     cursor: pointer;
 }
+#send-message svg {
+    width: 24px;
+    height: 24px;
+    stroke: #333;
+    pointer-events: none;
+}
 #send-message:hover {
     background-color: #e0e0e0;
 }

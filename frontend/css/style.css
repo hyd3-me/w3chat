@@ -128,10 +128,8 @@ main {
 #request-channel {
     display: flex;
     align-items: center;
-    width: 100%;
     gap: 8px;
     padding: 10px;
-    box-sizing: border-box;
 }
 
 #request-channel input {

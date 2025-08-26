@@ -461,6 +461,10 @@ async function checkExistingConnection() {
 }
 
 function sendMessage() {
+    if (!isAuthenticated) {
+    console.log("User not authenticated");
+    return;
+    }
     const messageInput = document.getElementById("message-input");
     if (!messageInput) {
         console.log("Message input not found");
@@ -471,8 +475,8 @@ function sendMessage() {
         console.log("Cannot send empty message");
         return;
     }
-    if (!isAuthenticated) {
-        console.log("User not authenticated");
+    if (message.trim().length > 12000) {
+        console.log("Message too long (max 12000 characters)");
         return;
     }
     if (!ws || ws.readyState !== WebSocket.OPEN) {

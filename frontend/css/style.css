@@ -124,13 +124,48 @@ main {
     margin-left: auto;
 }
 
+#request-channel {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#request-channel input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 21px;
+}
+
+#request-channel button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+#request-channel button:hover {
+    background-color: #e0e0e0;
+}
+
 ul#channels {
     padding: 0;
     overflow-wrap: break-word;
     overflow-y: auto;
 }
 #channels li {
-    padding: 10px;
+    display: inline-block;
+    padding: 6px 10px;
     cursor: pointer;
     align-items: center;
     list-style: none;

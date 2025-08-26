@@ -120,7 +120,7 @@ main {
 
 #chat-form {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
 }
 #message-input {
@@ -128,6 +128,12 @@ main {
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    resize: none;
+    overflow-y: auto;
+}
+#message-input:focus {
+    outline: none;
+    border-color: #007bff;
 }
 #send-message {
     display: flex;

@@ -523,10 +523,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     requestChannelBtn.addEventListener("click", channelRequest);
     const chatForm = document.getElementById("chat-form");
-    if (chatForm) {
+    const messageInput = document.getElementById("message-input");
+    if (chatForm && messageInput) {
         chatForm.addEventListener("submit", (e) => {
             e.preventDefault(); // Prevent form submission from reloading page
             sendMessage();
+        });
+        messageInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault(); // Prevent newline
+                sendMessage();
+            }
         });
     }
 });

@@ -324,6 +324,12 @@ ul#channels {
     stroke: #0056b3;
 }
 
+#placeholder {
+    padding-top: 16px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
 @media (max-width: 280px) {
     #notifications-list .channel-request .request-actions {
         flex-direction: column;

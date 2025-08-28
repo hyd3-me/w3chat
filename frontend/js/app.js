@@ -39,8 +39,8 @@ function updateWalletUI() {
         authDiv.innerHTML = `
             <button id="profile">${truncateAddress(userAddress)}</button>
             <div class="dropdown">
-                <button id="disconnect-wallet">logout</button>
                 <button id="toggle-theme">theme</button>
+                <button id="disconnect-wallet">logout</button>
             </div>
         `;
         const toggleThemeButton = document.getElementById("toggle-theme");

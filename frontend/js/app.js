@@ -17,8 +17,9 @@ function truncateAddress(address) {
 
 function updateWalletUI() {
     const notifications = JSON.parse(sessionStorage.getItem("w3chat_notifications") || "{}");
+    const rejectNotifications = JSON.parse(sessionStorage.getItem("w3chat_reject_notifications") || "{}");
     const newMessages = JSON.parse(sessionStorage.getItem("w3chat_new_messages") || "{}");
-    const hasNotifications = Object.keys(notifications).length > 0 ? " has-notifications" : "";
+    const hasNotifications = Object.keys(notifications).length > 0 || Object.keys(rejectNotifications).length > 0 ? " has-notifications" : "";
     const hasNewMessages = Object.keys(newMessages).length > 0 ? " has-new-messages" : "";
     console.log(`${hasNotifications}`);
     if (isAuthenticated) {
@@ -168,6 +169,28 @@ function createChannelRequestItem(data) {
     return requestItem;
 }
 
+function createRejectNotificationItem(data, notificationId) {
+    const notificationItem = document.createElement("li");
+    notificationItem.className = "notification has-new-notifications";
+    notificationItem.dataset.notificationId = notificationId;
+    notificationItem.textContent = data.message;
+    notificationItem.title = data.message;
+    // Remove on click
+    notificationItem.addEventListener("click", () => {
+        notificationItem.remove();
+        removeRejectNotification(notificationId);
+    });
+    return notificationItem;
+}
+
+function removeRejectNotification(notificationId) {
+    const rejectNotifications = JSON.parse(sessionStorage.getItem("w3chat_reject_notifications") || "{}");
+    delete rejectNotifications[notificationId];
+    sessionStorage.setItem("w3chat_reject_notifications", JSON.stringify(rejectNotifications));
+    console.log(`Removed reject notification ${notificationId} from sessionStorage`);
+    updateWalletUI();
+}
+
 function attachChannelActionListener(requestItem, channel) {
     requestItem.addEventListener("click", (event) => {
         const buttonClass = event.target.className;
@@ -229,6 +252,13 @@ function restoreNotifications() {
         attachChannelActionListener(requestItem, data.channel);
     });
     console.log(`Restored ${Object.keys(notifications).length} notifications from sessionStorage`);
+    // Restore reject notifications
+    const rejectNotifications = JSON.parse(sessionStorage.getItem("w3chat_reject_notifications") || "{}");
+    Object.values(rejectNotifications).forEach(data => {
+        const notificationItem = createRejectNotificationItem(data);
+        notificationsList.appendChild(notificationItem);
+    });
+    console.log(`Restored ${Object.keys(rejectNotifications).length} reject notifications from sessionStorage`);
 }
 
 function hide_channel_messages() {
@@ -300,6 +330,19 @@ function handleInfo(data) {
         hiddenContainer.appendChild(messagesDiv);
     } else if (data.message === "Channel request rejected by") {
         console.log("Channel request rejected:", data.message);
+        const notificationsList = document.getElementById("notifications-list");
+        if (!notificationsList) {
+            console.log("Notifications list not found");
+            return;
+        }
+        const notificationId = crypto.randomUUID();
+        const notificationItem = createRejectNotificationItem({ message: data.message }, notificationId);
+        const rejectNotifications = JSON.parse(sessionStorage.getItem("w3chat_reject_notifications") || "{}");
+        rejectNotifications[notificationId] = { message: data.message };
+        sessionStorage.setItem("w3chat_reject_notifications", JSON.stringify(rejectNotifications));
+        console.log(`Saved reject notification ${notificationId} to sessionStorage`);
+        notificationsList.appendChild(notificationItem);
+        updateWalletUI();
     }
 }
 
@@ -437,6 +480,7 @@ function disconnectWallet() {
     activeContent = "channels";
     selectedChannel = null;
     localStorage.removeItem("w3chat_user");
+    sessionStorage.removeItem("w3chat_reject_notifications");
     updateWalletUI();
     updateContentUI();
 }

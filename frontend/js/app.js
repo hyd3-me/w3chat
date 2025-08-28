@@ -159,7 +159,7 @@ function createChannelRequestItem(data) {
     requestItem.className = "channel-request";
     requestItem.dataset.channelId = data.channel;
     requestItem.innerHTML = `
-        <div class="request-text">Channel request from ${data.from}</div>
+        <div class="request-text"><p>Channel request from ${data.from}</p></div>
         <div class="request-actions">
             <button class="reject">Reject</button>
             <button class="approve">Approve</button>
@@ -173,7 +173,9 @@ function createRejectNotificationItem(data, notificationId) {
     const notificationItem = document.createElement("li");
     notificationItem.className = "notification has-new-notifications";
     notificationItem.dataset.notificationId = notificationId;
-    notificationItem.textContent = data.message;
+    const pItem = document.createElement("p");
+    pItem.textContent = data.message;
+    notificationItem.appendChild(pItem);
     notificationItem.title = data.message;
     // Remove on click
     notificationItem.addEventListener("click", () => {
@@ -328,7 +330,7 @@ function handleInfo(data) {
         const messagesDiv = document.createElement("div");
         messagesDiv.id = `channel-messages-${data.channel}`;
         hiddenContainer.appendChild(messagesDiv);
-    } else if (data.message === "Channel request rejected by") {
+    } else if (data.message.startsWith("Channel request rejected by")) {
         console.log("Channel request rejected:", data.message);
         const notificationsList = document.getElementById("notifications-list");
         if (!notificationsList) {

@@ -45,7 +45,14 @@ function updateWalletUI() {
         `;
     } else {
         navMenu.innerHTML = "";
-        authDiv.innerHTML = `<button id="connect-wallet">Connect Wallet</button>`;
+        authDiv.innerHTML = `<button id="connect-wallet">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <path d="M21 4H3a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+            <path d="M21 14h-3a2 2 0 0 1 0-4h3"></path>
+            <circle cx="16" cy="12" r="1"></circle>
+        </svg>
+        Connect Wallet
+    </button>`;
     }
 }
 

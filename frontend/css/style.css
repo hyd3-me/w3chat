@@ -6,8 +6,8 @@
     --hover-bg: #e0e0e0;
     --input-bg: #f9f9f9;
     --message-bg: #f1f1f1;
-    --notification-dot: #f3333;
-    --own-message-bg: #fff;
+    --notification-dot: #ff3333;
+    --own-message-bg: #f0f4ff;
     --own-message-text: #007bff;
     --text: #333;
 }
@@ -15,12 +15,12 @@
 [data-theme="dark"] {
     --background: #1c1c2e;
     --border: #4b4b6b;
-    --chat-bg: #1c1c2e;
+    --chat-bg: #242444;
     --hover-bg: #2a2a3f;
     --input-bg: #2a2a3f;
     --message-bg: #2a2a3f;
     --notification-dot: #ff4081;
-    --own-message-bg: #1c1c2e;
+    --own-message-bg: #33335e;
     --own-message-text: #00b7eb;
     --text: #e0e0e0;
 }

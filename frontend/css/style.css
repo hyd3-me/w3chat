@@ -272,6 +272,12 @@ main {
     background-color: var(--input-bg);
     cursor: pointer;
 }
+#request-channel button svg {
+    stroke: var(--text);
+}
+#request-channel button svg[data-theme="dark"] {
+    stroke: #ffffff;
+}
 #request-channel button:hover {
     background-color: var(--hover-bg);
 }

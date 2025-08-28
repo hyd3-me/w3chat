@@ -4,7 +4,6 @@ const placeholder = document.getElementById("placeholder");
 const channelsList = document.getElementById("channels-list");
 const chatContent = document.getElementById("chat-content");
 const notifications = document.getElementById("notifications");
-const requestChannelBtn = document.getElementById("request-channel-btn");
 const hiddenContainer = document.getElementById("hidden-messages-container");
 let isAuthenticated = false;
 let userAddress = null;
@@ -41,8 +40,17 @@ function updateWalletUI() {
             <button id="profile">${truncateAddress(userAddress)}</button>
             <div class="dropdown">
                 <button id="disconnect-wallet">logout</button>
+                <button id="toggle-theme">theme</button>
             </div>
         `;
+        const toggleThemeButton = document.getElementById("toggle-theme");
+        const currentTheme = localStorage.getItem("theme") || "light";
+        document.body.setAttribute("data-theme", currentTheme);
+        toggleThemeButton.addEventListener("click", () => {
+            const newTheme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
+            document.body.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
+        });
     } else {
         navMenu.innerHTML = "";
         authDiv.innerHTML = `<button id="connect-wallet">
@@ -534,6 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
     });
+    const requestChannelBtn = document.getElementById("request-channel-btn");
     requestChannelBtn.addEventListener("click", channelRequest);
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message-input");

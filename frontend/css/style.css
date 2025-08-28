@@ -1,15 +1,15 @@
 /* Variables */
 :root {
-    --background: #f5f5f5;
-    --border: #ccc;
-    --chat-bg: #fff;
-    --hover-bg: #e0e0e0;
-    --input-bg: #f9f9f9;
-    --message-bg: #f1f1f1;
-    --notification-dot: #ff3333;
-    --own-message-bg: #f0f4ff;
-    --own-message-text: #007bff;
-    --text: #333;
+    --background: #f4f3ff;
+    --border: #d1d1e6;
+    --chat-bg: #ffffff;
+    --hover-bg: #e2e1ff;
+    --input-bg: #f9f9ff;
+    --message-bg: #ececff;
+    --notification-dot: #ff4081;
+    --own-message-bg: #e6ebff;
+    --own-message-text: #005b9f;
+    --text: #1e1e2e;
 }
 
 [data-theme="dark"] {
@@ -395,11 +395,11 @@ ul#channels {
     text-align: center;
 }
 #notifications-list .channel-request .approve {
-    background-color: #28a745;
+    background-color: #00b7eb;
     color: #fff;
 }
 #notifications-list .channel-request .reject {
-    background-color: #ff0000;
+    background-color: #ff4081;
     color: #fff;
 }
 [data-theme="dark"] #notifications-list .channel-request .approve {

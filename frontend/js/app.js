@@ -347,7 +347,7 @@ function handleError(data) {
 
 function channelRequest() {
     const recipientAddressElement = document.getElementById("recipient-address");
-    const recipientAddress = recipientAddressElement.value.toLowerCase();
+    const recipientAddress = recipientAddressElement.value.trim().toLowerCase();
     if (!recipientAddress || !recipientAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
         console.log("Invalid recipient address");
         return;

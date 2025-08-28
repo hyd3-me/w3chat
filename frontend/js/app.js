@@ -382,7 +382,9 @@ async function connectWallet() {
         console.log(`Connected: ${address}`);
 
         // Sign message
-        const message = "Sign to authenticate with w3chat";
+        const timestamp = new Date().toISOString();
+        const nonce = crypto.randomUUID();
+        const message = `Sign this message to authenticate with w3chat: ${nonce} at ${timestamp}`;
         const signature = await window.ethereum.request({
             method: "personal_sign",
             params: [message, address]
@@ -469,8 +471,8 @@ async function checkExistingConnection() {
 
 function sendMessage() {
     if (!isAuthenticated) {
-    console.log("User not authenticated");
-    return;
+        console.log("User not authenticated");
+        return;
     }
     const messageInput = document.getElementById("message-input");
     if (!messageInput) {

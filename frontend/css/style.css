@@ -214,6 +214,7 @@ main {
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
+    scrollbar-width: none;
     padding: 10px;
 }
 
@@ -383,21 +384,27 @@ ul#channels {
 
 #notifications-list .channel-request .reject,
 #notifications-list .channel-request .approve {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border);
     border-radius: 4px;
     cursor: pointer;
     flex: 1;
     padding: 8px;
     text-align: center;
 }
-
+#notifications-list .channel-request .approve {
+    background-color: #28a745;
+    color: #fff;
+}
 #notifications-list .channel-request .reject {
     background-color: #ff0000;
     color: #fff;
 }
-
-#notifications-list .channel-request .approve {
-    background-color: #28a745;
+[data-theme="dark"] #notifications-list .channel-request .approve {
+    background-color: #00b7eb;
+    color: #fff;
+}
+[data-theme="dark"] #notifications-list .channel-request .reject {
+    background-color: #ff4081;
     color: #fff;
 }
 

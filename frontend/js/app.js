@@ -256,8 +256,8 @@ function restoreNotifications() {
     console.log(`Restored ${Object.keys(notifications).length} notifications from sessionStorage`);
     // Restore reject notifications
     const rejectNotifications = JSON.parse(sessionStorage.getItem("w3chat_reject_notifications") || "{}");
-    Object.values(rejectNotifications).forEach(data => {
-        const notificationItem = createRejectNotificationItem(data);
+    Object.entries(rejectNotifications).forEach(([notificationId, data]) => {
+        const notificationItem = createRejectNotificationItem(data, notificationId);
         notificationsList.appendChild(notificationItem);
     });
     console.log(`Restored ${Object.keys(rejectNotifications).length} reject notifications from sessionStorage`);

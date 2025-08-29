@@ -400,7 +400,7 @@ ul#channels {
     cursor: pointer;
     display: flex;
     list-style: none;
-    padding: 10px;
+    padding: 12px;
 }
 
 #notifications-list .notification.has-new-notifications::before,

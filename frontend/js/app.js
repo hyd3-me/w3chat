@@ -311,7 +311,7 @@ function handleInfo(data) {
         // Parse channel ID to extract other participant's address
         const [addr1, addr2] = data.channel.split(":");
         const otherAddress = addr1.toLowerCase() === userAddress.toLowerCase() ? addr2 : addr1;
-        channelItem.textContent = otherAddress;
+        channelItem.textContent = truncateAddress(otherAddress);
         channelItem.title = otherAddress; // Full address in tooltip
         channelItem.addEventListener("click", () => {
             activeContent = "chat";
@@ -321,6 +321,8 @@ function handleInfo(data) {
                 // Set new selected channel
                 selectedChannel = data.channel;
                 // Move new channel messages to chat-messages
+                const elem_username = document.getElementById("user-info-username");
+                elem_username.textContent = truncateAddress(otherAddress);
                 const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
                 const chatMessages = document.getElementById("chat-messages");
                 if (messagesDiv && chatMessages) {

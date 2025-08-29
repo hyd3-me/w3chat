@@ -270,6 +270,8 @@ function hide_channel_messages() {
             hiddenContainer.appendChild(prevMessages);
             console.log(`Moved channel-messages-${selectedChannel} to hidden container`);
         }
+    } else {
+        console.log("No previously selected channel to hide messages for");
     }
 }
 
@@ -300,17 +302,19 @@ function handleInfo(data) {
         channelItem.textContent = otherAddress;
         channelItem.title = otherAddress; // Full address in tooltip
         channelItem.addEventListener("click", () => {
-            // Hide previous channel messages
-            hide_channel_messages();
-            // Set new selected channel
-            selectedChannel = data.channel;
             activeContent = "chat";
-            // Move new channel messages to chat-messages
-            const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
-            const chatMessages = document.getElementById("chat-messages");
-            if (messagesDiv && chatMessages) {
-                chatMessages.appendChild(messagesDiv);
-                console.log(`Moved channel-messages-${data.channel} to chat-messages`);
+            // Hide previous channel messages
+            if (data.channel !== selectedChannel) {
+                hide_channel_messages();
+                // Set new selected channel
+                selectedChannel = data.channel;
+                // Move new channel messages to chat-messages
+                const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
+                const chatMessages = document.getElementById("chat-messages");
+                if (messagesDiv && chatMessages) {
+                    chatMessages.appendChild(messagesDiv);
+                    console.log(`Moved channel-messages-${data.channel} to chat-messages`);
+                }
             }
             // Clear new messages for this channel
             const newMessages = JSON.parse(sessionStorage.getItem("w3chat_new_messages") || "{}");
@@ -575,14 +579,12 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (e.target.id === "nav-channels") {
             if (activeContent !== "channels") {
                 activeContent = "channels";
-                selectedChannel = null;
                 updateContentUI();
                 console.log("Switched to Channels");
             }
         } else if (e.target.id === "nav-notifications") {
             if (activeContent !== "notifications") {
                 activeContent = "notifications";
-                selectedChannel = null;
                 updateContentUI();
                 console.log("Switched to Notifications");
             }

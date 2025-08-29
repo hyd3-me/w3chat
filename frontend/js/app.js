@@ -599,6 +599,17 @@ document.addEventListener("DOMContentLoaded", () => {
         updateWalletUI();
         updateContentUI();
     });
+    // Update UI on window resize to handle address truncation
+    window.addEventListener("resize", () => {
+        if (activeContent === "chat" && selectedChannel) {
+            const [addr1, addr2] = selectedChannel.split(":");
+            const otherAddress = addr1.toLowerCase() === userAddress.toLowerCase() ? addr2 : addr1;
+            const elem_username = document.getElementById("user-info-username");
+            elem_username.textContent = truncateAddress(otherAddress);
+        }
+        updateWalletUI();
+        updateContentUI();
+    });
     const header = document.querySelector("header");
     header.addEventListener("click", (e) => {
         if (e.target.id === "connect-wallet") {

@@ -13,6 +13,12 @@ let activeContent = "channels"; // Default to channels when authenticated
 let selectedChannel = null; // No channel selected initially
 let ws = null; // WebSocket connection
 
+// Generate color based on address hash
+const colors = [
+    "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD",
+    "#D4A5A5", "#9B59B6", "#3498DB", "#E74C3C", "#2ECC71"
+];
+
 function truncateAddress(address) {
     return `${address.slice(0, 5)}...${address.slice(-4)}`;
 }
@@ -323,6 +329,15 @@ function handleInfo(data) {
                 // Move new channel messages to chat-messages
                 const elem_username = document.getElementById("user-info-username");
                 elem_username.textContent = truncateAddress(otherAddress);
+                elem_username.title = otherAddress; // Full address in tooltip
+                const elem_avatar = document.getElementById("user-info-avatar");
+                const hash = otherAddress.toLowerCase().split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const color = colors[hash % colors.length];
+                const initials = otherAddress.slice(-2).toUpperCase();
+                elem_avatar.innerHTML = `
+    <circle cx="16" cy="16" r="16" fill="${color}"/>
+    <text x="16" y="16" font-size="12" fill="var(--text)" text-anchor="middle" dominant-baseline="middle">${initials}</text>
+`;
                 const messagesDiv = document.getElementById(`channel-messages-${data.channel}`);
                 const chatMessages = document.getElementById("chat-messages");
                 if (messagesDiv && chatMessages) {

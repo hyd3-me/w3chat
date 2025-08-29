@@ -216,7 +216,6 @@ nav#nav-menu .icon-button.has-notifications::after {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    object-fit: cover;
 }
 
 #user-info-username {

@@ -23,7 +23,12 @@ function updateWalletUI() {
     const hasNewMessages = Object.keys(newMessages).length > 0 ? " has-new-messages" : "";
     console.log(`${hasNotifications}`);
     if (isAuthenticated) {
-        navMenu.innerHTML = `
+        if (activeContent === "chat" && selectedChannel) {
+            // hide logo + profile
+            console.log("In chat view, hiding nav menu");
+        } else {
+            // hide user-info
+            navMenu.innerHTML = `
             <button id="nav-channels" class="icon-button${hasNewMessages}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -37,21 +42,22 @@ function updateWalletUI() {
                 </svg>
             </button>
         `;
-        authDiv.innerHTML = `
+            authDiv.innerHTML = `
             <button id="profile">${truncateAddress(userAddress)}</button>
             <div class="dropdown">
                 <button id="toggle-theme">theme</button>
                 <button id="disconnect-wallet">logout</button>
             </div>
         `;
-        const toggleThemeButton = document.getElementById("toggle-theme");
-        const currentTheme = localStorage.getItem("theme") || "light";
-        document.body.setAttribute("data-theme", currentTheme);
-        toggleThemeButton.addEventListener("click", () => {
-            const newTheme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
-            document.body.setAttribute("data-theme", newTheme);
-            localStorage.setItem("theme", newTheme);
-        });
+            const toggleThemeButton = document.getElementById("toggle-theme");
+            const currentTheme = localStorage.getItem("theme") || "light";
+            document.body.setAttribute("data-theme", currentTheme);
+            toggleThemeButton.addEventListener("click", () => {
+                const newTheme = document.body.getAttribute("data-theme") === "light" ? "dark" : "light";
+                document.body.setAttribute("data-theme", newTheme);
+                localStorage.setItem("theme", newTheme);
+            });
+        }
     } else {
         navMenu.innerHTML = "";
         authDiv.innerHTML = `<button id="connect-wallet">
@@ -587,6 +593,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 activeContent = "notifications";
                 updateContentUI();
                 console.log("Switched to Notifications");
+            }
+        } else if (e.target.id === "back-to-channels") {
+            if (activeContent !== "channels") {
+                activeContent = "channels";
+                updateContentUI();
+                console.log("Switched to Channels from chat");
             }
         }
     });

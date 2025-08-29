@@ -41,19 +41,30 @@ body {
 h1 {
     margin: 0;
     padding: 8px;
+    line-height: 1;
 }
 
 /* Header */
 header {
-    align-items: center;
     background-color: var(--background);
     border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
     padding: 6px 0;
     margin: 0 auto;
     max-width: 780px;
     width: 100%;
+}
+
+#standard-header-body {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+#chat-header-body {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    padding: 3px;
 }
 
 #header-right {
@@ -195,6 +206,26 @@ nav#nav-menu .icon-button.has-notifications::after {
     background-color: var(--hover-bg);
 }
 
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#user-info-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+#user-info-username {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text);
+    padding: 6px;
+}
+
 /* Main Content */
 main {
     flex-grow: 1;
@@ -262,13 +293,15 @@ main {
     width: 42px;
 }
 
+#back-to-channels svg,
 #send-message svg {
+    width: 24px;
     height: 24px;
     pointer-events: none;
     stroke: var(--text);
-    width: 24px;
 }
 
+#back-to-channels:hover,
 #send-message:hover {
     background-color: var(--hover-bg);
 }
@@ -307,6 +340,18 @@ main {
     color: var(--text);
     flex-grow: 1;
     padding: 12px;
+}
+
+#back-to-channels {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    width: 42px;
+    height: 42px;
 }
 
 #request-channel button {

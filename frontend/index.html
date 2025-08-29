@@ -10,16 +10,37 @@
 
 <body>
     <header>
-        <h1>w3chat</h1>
-        <div id="header-right">
-            <nav id="nav-menu"></nav>
-            <div id="auth"></div>
+        <div id="standard-header">
+            <div id="standard-header-body">
+                <h1>w3chat</h1>
+                <div id="header-right">
+                    <nav id="nav-menu"></nav>
+                    <div id="auth"></div>
+                </div>
+            </div>
+        </div>
+        <div id="chat-header" class="hidden">
+            <div id="chat-header-body">
+                <button id="back-to-channels">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+                        <path d="M19 12H5"></path>
+                        <path d="M12 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <div id="user-info">
+                    <img id="user-info-avatar" src="/static/img/default-avatar.png" alt="Avatar">
+                    <span id="user-info-username">Username</span>
+                </div>
+            </div>
         </div>
         <!-- Notification icon by Freepik from Flaticon: https://www.flaticon.com/free-icon/bell_3917706 -->
         <!-- Chat icon by Freepik from Flaticon: https://www.flaticon.com/free-icon/chat_3917591 -->
     </header>
     <main>
-        <div id="placeholder" class="content-block"><p>Please connect your wallet to start chatting</p></div>
+        <div id="placeholder" class="content-block">
+            <p>Please connect your wallet to start chatting</p>
+        </div>
         <div id="channels-list" class="content-block hidden">
             <div id="request-channel">
                 <input id="recipient-address" type="text" placeholder="Enter wallet address">

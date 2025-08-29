@@ -5,6 +5,8 @@ const channelsList = document.getElementById("channels-list");
 const chatContent = document.getElementById("chat-content");
 const notifications = document.getElementById("notifications");
 const hiddenContainer = document.getElementById("hidden-messages-container");
+const standardHeader = document.getElementById("standard-header");
+const chatHeader = document.getElementById("chat-header");
 let isAuthenticated = false;
 let userAddress = null;
 let activeContent = "channels"; // Default to channels when authenticated
@@ -73,11 +75,15 @@ function updateWalletUI() {
 
 function updateContentUI() {
     if (!isAuthenticated) {
+        standardHeader.classList.remove("hidden");
+        chatHeader.classList.add("hidden");
         placeholder.classList.remove("hidden");
         channelsList.classList.add("hidden");
         chatContent.classList.add("hidden");
         notifications.classList.add("hidden");
     } else {
+        standardHeader.classList.toggle("hidden", activeContent === "chat" && selectedChannel);
+        chatHeader.classList.toggle("hidden", !(activeContent === "chat" && selectedChannel));
         placeholder.classList.add("hidden");
         channelsList.classList.toggle("hidden", activeContent !== "channels");
         chatContent.classList.toggle("hidden", activeContent !== "chat" || !selectedChannel);
